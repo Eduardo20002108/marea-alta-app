@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#3D1A5E">
+<title>Marea Alta Eventos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --ma-lavender:#D6E0F5; --ma-lavender-mid:#B8C8EE; --ma-lavender-deep:#8FA8DC;
+  --ma-purple-dark:#3D1A5E; --ma-purple-mid:#6B4A8E; --ma-purple-light:#9B7BB8;
+  --ma-purple-pale:#EDE5F5; --ma-white:#F9F7FD; --ma-surface:#FFFFFF;
+  --nav-h:64px; --header-h:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--ma-lavender);font-family:'Inter',sans-serif;color:var(--ma-purple-dark);}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+
+/* HEADER */
+.header{height:var(--header-h);background:var(--ma-purple-dark);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:10;}
+.header-logo{display:flex;flex-direction:column;}
+.header-logo .marea{font-family:'Playfair Display',serif;font-style:italic;font-size:18px;font-weight:500;color:var(--ma-lavender);line-height:1;}
+.header-logo .alta{font-family:'Playfair Display',serif;font-weight:600;font-size:20px;color:var(--ma-lavender);line-height:1;margin-top:-2px;}
+.header-logo .ev-tag{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ma-purple-light);margin-top:1px;}
+.sync-status{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(214,224,245,0.65);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0;transition:background 0.3s;}
+.sync-dot.syncing{background:#facc15;animation:pulse 1s infinite;}
+.sync-dot.offline{background:#f87171;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(var(--nav-h)+16px);}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--ma-purple-dark);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom);}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:rgba(214,224,245,0.45);transition:color 0.15s;padding:8px 2px;}
+.nav-tab i{font-size:21px;}
+.nav-tab span{font-size:9px;font-weight:500;letter-spacing:.02em;}
+.nav-tab.active{color:var(--ma-lavender);}
+
+/* PAGES */
+.page{display:none;}.page.active{display:block;}
+
+/* CARDS */
+.card{background:var(--ma-surface);border:0.5px solid rgba(107,74,142,0.18);border-radius:14px;padding:16px;margin-bottom:12px;}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:500;color:var(--ma-purple-dark);margin-bottom:12px;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat-card{background:var(--ma-surface);border:0.5px solid rgba(107,74,142,0.18);border-radius:12px;padding:14px;}
+.stat-label{font-size:11px;color:var(--ma-purple-mid);margin-bottom:5px;}
+.stat-value{font-size:22px;font-weight:500;color:var(--ma-purple-dark);}
+.stat-sub{font-size:10px;color:var(--ma-purple-light);margin-top:2px;}
+
+.section-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--ma-purple-mid);margin:16px 0 8px;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;}
+.badge-green{background:#E2F4EC;color:#1a7a44;}
+.badge-amber{background:#FDF3E0;color:#8a5c00;}
+.badge-red{background:#FCE8E8;color:#9a2020;}
+.badge-blue{background:var(--ma-lavender);color:var(--ma-purple-dark);}
+.badge-gray{background:var(--ma-purple-pale);color:var(--ma-purple-mid);}
+.badge-purple{background:var(--ma-purple-pale);color:var(--ma-purple-dark);}
+
+.folio{font-family:monospace;font-size:12px;color:var(--ma-purple-mid);font-weight:500;background:var(--ma-purple-pale);padding:2px 7px;border-radius:4px;}
+
+/* FORMS */
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.form-group label{font-size:12px;color:var(--ma-purple-mid);font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{
+  padding:11px 12px;border:0.5px solid rgba(107,74,142,0.3);border-radius:10px;
+  font-size:15px;background:var(--ma-white);color:var(--ma-purple-dark);
+  font-family:'Inter',sans-serif;width:100%;-webkit-appearance:none;appearance:none;
+}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--ma-purple-mid);box-shadow:0 0 0 3px rgba(107,74,142,0.12);}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;border-radius:10px;border:0.5px solid rgba(107,74,142,0.3);background:var(--ma-white);color:var(--ma-purple-dark);font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;-webkit-tap-highlight-color:transparent;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--ma-purple-dark);border-color:var(--ma-purple-dark);color:var(--ma-lavender);}
+.btn-primary:active{background:var(--ma-purple-mid);}
+.btn-block{width:100%;}
+.btn-sm{padding:8px 12px;font-size:13px;}
+.btn-icon{padding:9px;border-radius:9px;}
+.btn-danger-soft{border-color:rgba(154,32,32,0.3);color:#9a2020;background:none;}
+
+/* ITEM ROWS */
+.item-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:0.5px solid rgba(107,74,142,0.1);cursor:pointer;}
+.item-row:last-child{border-bottom:none;}
+.item-row:active{background:rgba(107,74,142,0.04);}
+.item-name{font-size:14px;font-weight:500;color:var(--ma-purple-dark);}
+.item-meta{font-size:12px;color:var(--ma-purple-light);margin-top:2px;}
+.item-price{font-size:15px;font-weight:500;color:var(--ma-purple-dark);}
+
+/* PROGRESS */
+.progress-bar{background:var(--ma-lavender);border-radius:20px;height:5px;overflow:hidden;margin-top:5px;}
+.progress-fill{height:100%;border-radius:20px;background:var(--ma-purple-mid);}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(var(--nav-h)+16px);right:16px;width:52px;height:52px;border-radius:50%;background:var(--ma-purple-dark);color:var(--ma-lavender);border:none;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:15;box-shadow:0 4px 18px rgba(61,26,94,0.4);transition:transform 0.15s;}
+.fab:active{transform:scale(0.91);}
+
+/* SHEETS */
+.sheet-overlay{position:fixed;inset:0;background:rgba(61,26,94,0.5);z-index:50;display:none;align-items:flex-end;}
+.sheet-overlay.open{display:flex;}
+.sheet{background:var(--ma-white);border-radius:20px 20px 0 0;width:100%;max-height:92dvh;overflow-y:auto;padding:0 16px calc(env(safe-area-inset-bottom)+20px);animation:slideUp .22s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(107,74,142,0.2);margin:12px auto 16px;}
+.sheet-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:500;color:var(--ma-purple-dark);margin-bottom:16px;}
+
+/* COTIZADOR */
+.cot-item{background:var(--ma-purple-pale);border-radius:10px;padding:12px;margin-bottom:8px;}
+.cot-item-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.cot-folio-input{width:95px;padding:8px 10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:8px;font-size:13px;font-family:monospace;background:var(--ma-white);color:var(--ma-purple-mid);text-transform:uppercase;}
+.cot-item-name{flex:1;font-size:13px;color:var(--ma-purple-dark);font-weight:500;}
+.cot-item-bottom{display:flex;align-items:center;gap:8px;}
+.cot-qty{width:60px;padding:8px;border:0.5px solid rgba(107,74,142,0.3);border-radius:8px;font-size:15px;text-align:center;background:var(--ma-white);color:var(--ma-purple-dark);}
+.cot-pu{font-size:12px;color:var(--ma-purple-light);flex:1;}
+.cot-subtotal{font-size:15px;font-weight:500;color:var(--ma-purple-dark);}
+
+/* RESUMEN */
+.resumen-box{background:var(--ma-lavender);border:0.5px solid var(--ma-lavender-mid);border-radius:12px;padding:14px 16px;margin-top:12px;}
+.resumen-row{display:flex;justify-content:space-between;font-size:13px;color:var(--ma-purple-mid);padding:4px 0;}
+.resumen-total{display:flex;justify-content:space-between;font-size:17px;font-weight:500;color:var(--ma-purple-dark);padding-top:10px;margin-top:4px;border-top:0.5px solid var(--ma-lavender-deep);}
+.saldo-row{display:flex;justify-content:space-between;font-size:14px;font-weight:500;margin-top:12px;color:var(--ma-purple-dark);}
+.saldo-val{color:var(--ma-purple-mid);}
+
+/* CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-month{font-family:'Playfair Display',serif;font-size:18px;font-weight:500;color:var(--ma-purple-dark);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-day-head{text-align:center;font-size:10px;color:var(--ma-purple-mid);font-weight:500;padding:4px 0;}
+.cal-day{min-height:48px;border:0.5px solid rgba(107,74,142,0.12);border-radius:7px;padding:5px 4px;background:var(--ma-white);}
+.cal-day.other-month{opacity:0.3;}
+.cal-day.today{border-color:var(--ma-purple-mid);border-width:1.5px;}
+.cal-day.has-event{background:var(--ma-purple-pale);}
+.cal-day-num{font-size:12px;font-weight:500;color:var(--ma-purple-dark);margin-bottom:2px;}
+.cal-dot{width:5px;height:5px;border-radius:50%;margin:1px auto;}
+.dot-boda{background:var(--ma-purple-mid);}
+.dot-baby{background:var(--ma-lavender-deep);}
+.dot-cumple{background:#4ade80;}
+
+/* ALERTS */
+.alert{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:8px;}
+.alert-warn{background:#FDF3E0;color:#8a5c00;}
+.alert-danger{background:#FCE8E8;color:#9a2020;}
+.alert-info{background:var(--ma-lavender);color:var(--ma-purple-dark);}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--nav-h)+80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--ma-purple-dark);color:var(--ma-lavender);padding:12px 20px;border-radius:24px;font-size:13px;font-weight:500;z-index:100;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:85vw;text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:36px 20px;color:var(--ma-purple-light);}
+.empty-state i{font-size:40px;display:block;margin-bottom:10px;opacity:0.3;}
+.empty-state p{font-size:14px;}
+
+/* INFO HINT */
+.info-hint{font-size:12px;color:var(--ma-purple-mid);background:var(--ma-lavender);padding:10px 13px;border-radius:9px;margin-bottom:12px;}
+
+/* LOADING */
+.loading-screen{position:fixed;inset:0;background:var(--ma-purple-dark);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:16px;}
+.loading-logo-marea{font-family:'Playfair Display',serif;font-style:italic;font-size:36px;font-weight:500;color:var(--ma-lavender);}
+.loading-logo-alta{font-family:'Playfair Display',serif;font-weight:600;font-size:42px;color:var(--ma-lavender);margin-top:-8px;}
+.loading-tag{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ma-purple-light);margin-top:2px;}
+.loading-spinner{width:32px;height:32px;border:2px solid rgba(214,224,245,0.2);border-top-color:var(--ma-lavender-mid);border-radius:50%;animation:spin .8s linear infinite;margin-top:24px;}
+.loading-msg{font-size:13px;color:rgba(214,224,245,0.5);}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;background:var(--ma-purple-pale);color:var(--ma-purple-dark);}
+::-webkit-scrollbar{width:0;}
+
+@media(min-width:600px){
+  .content{max-width:480px;margin:0 auto;}
+  .fab{right:calc(50% - 240px + 16px);}
+  .toast{bottom:calc(var(--nav-h)+90px);}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading">
+  <div class="loading-logo-marea">Marea</div>
+  <div class="loading-logo-alta">Alta</div>
+  <div class="loading-tag">Eventos</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-msg" id="loading-msg">Conectando con la nube...</div>
+</div>
+
+<div class="app" id="app" style="display:none;">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-logo">
+      <span class="marea">Marea</span>
+      <span class="alta">Alta</span>
+      <span class="ev-tag">Eventos</span>
+    </div>
+    <div class="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">En línea</span>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Eventos este mes</div>
+          <div class="stat-value" id="stat-eventos">—</div>
+          <div class="stat-sub">registrados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Artículos</div>
+          <div class="stat-value" id="stat-items">—</div>
+          <div class="stat-sub">en inventario</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Por cobrar</div>
+          <div class="stat-value" id="stat-cobrar">—</div>
+          <div class="stat-sub">saldo pendiente</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ingresos mes</div>
+          <div class="stat-value" id="stat-ingresos">—</div>
+          <div class="stat-sub">anticipos recibidos</div>
+        </div>
+      </div>
+      <div class="section-title">Próximos eventos</div>
+      <div id="dash-eventos-list"><div class="card"><div class="empty-state"><i class="ti ti-loader"></i><p>Cargando...</p></div></div></div>
+      <div class="section-title">Alertas de inventario</div>
+      <div id="dash-alertas"></div>
+    </div>
+
+    <!-- INVENTARIO -->
+    <div class="page" id="page-inventario">
+      <div class="card" style="padding:12px;">
+        <input type="text" id="inv-search" placeholder="Buscar por nombre o folio..."
+          style="width:100%;padding:10px 12px;border:0.5px solid rgba(107,74,142,0.3);border-radius:10px;font-size:14px;background:var(--ma-white);color:var(--ma-purple-dark);font-family:Inter,sans-serif;"
+          oninput="renderInventario()">
+      </div>
+      <div id="inv-list"></div>
+    </div>
+
+    <!-- COTIZADOR -->
+    <div class="page" id="page-cotizador">
+      <div class="card">
+        <div class="card-title">Datos del evento</div>
+        <div class="form-group"><label>Cliente</label><input type="text" id="cot-cliente" placeholder="Nombre completo"></div>
+        <div class="form-row-2">
+          <div class="form-group"><label>Tipo</label>
+            <select id="cot-tipo">
+              <option>Boda</option><option>Baby shower</option><option>XV Años</option>
+              <option>Cumpleaños</option><option>Aniversario</option><option>Corporativo</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Fecha</label><input type="date" id="cot-fecha"></div>
+        </div>
+        <div class="form-group"><label>Lugar</label><input type="text" id="cot-lugar" placeholder="Salón, domicilio..."></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div class="card-title" style="margin:0;">Artículos</div>
+          <button class="btn btn-sm btn-primary" onclick="addCotItem()"><i class="ti ti-plus"></i> Agregar</button>
+        </div>
+        <div class="info-hint"><i class="ti ti-info-circle" style="vertical-align:-2px;margin-right:4px;"></i>Escribe el folio — precio y nombre se llenan solos</div>
+        <div id="cot-items-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Mano de obra</div>
+        <div class="form-group"><label>Tipo</label>
+          <select id="mo-tipo" onchange="toggleMO()">
+            <option value="fijo">Fee fijo por evento</option>
+            <option value="horas">Por horas</option>
+          </select>
+        </div>
+        <div id="mo-fijo-row"><div class="form-group"><label>Monto fijo ($)</label><input type="number" id="mo-val" placeholder="0" min="0" oninput="calcTotales()"></div></div>
+        <div id="mo-horas-row" style="display:none;">
+          <div class="form-row-2">
+            <div class="form-group"><label>Horas</label><input type="number" id="mo-horas" placeholder="0" min="0" oninput="calcTotales()"></div>
+            <div class="form-group"><label>Tarifa/hora ($)</label><input type="number" id="mo-tarifa" placeholder="0" min="0" oninput="calcTotales()"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Resumen</div>
+        <div class="resumen-box">
+          <div class="resumen-row"><span>Renta artículos</span><span id="r-renta">$0.00</span></div>
+          <div class="resumen-row"><span>Mano de obra</span><span id="r-mo">$0.00</span></div>
+          <div class="resumen-row"><span>IVA (16%)</span><span id="r-iva">$0.00</span></div>
+          <div class="resumen-total"><span>Total</span><span id="r-total">$0.00</span></div>
+        </div>
+        <div class="form-group" style="margin-top:12px;"><label>Anticipo / Depósito ($)</label><input type="number" id="cot-anticipo" placeholder="0" min="0" oninput="calcTotales()"></div>
+        <div class="saldo-row"><span>Saldo pendiente</span><span class="saldo-val" id="r-saldo">$0.00</span></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="guardarCotizacion()" style="margin-bottom:12px;">
+        <i class="ti ti-device-floppy"></i> Guardar como evento
+      </button>
+    </div>
+
+    <!-- EVENTOS -->
+    <div class="page" id="page-eventos">
+      <div id="eventos-list"></div>
+    </div>
+
+    <!-- CALENDARIO -->
+    <div class="page" id="page-calendario">
+      <div class="card">
+        <div class="cal-header">
+          <button class="btn btn-icon btn-sm" onclick="changeMonth(-1)"><i class="ti ti-chevron-left"></i></button>
+          <span class="cal-month" id="cal-title"></span>
+          <button class="btn btn-icon btn-sm" onclick="changeMonth(1)"><i class="ti ti-chevron-right"></i></button>
+        </div>
+        <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ma-purple-mid);"><span style="width:8px;height:8px;border-radius:50%;background:var(--ma-purple-mid);display:inline-block;"></span>Boda/Aniversario</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ma-purple-mid);"><span style="width:8px;height:8px;border-radius:50%;background:var(--ma-lavender-deep);display:inline-block;"></span>Baby shower</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ma-purple-mid);"><span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block;"></span>XV/Cumpleaños</span>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="section-title">Eventos del mes</div>
+      <div id="cal-events-list"></div>
+    </div>
+
+    <!-- DEVOLUCIONES -->
+    <div class="page" id="page-devoluciones">
+      <div class="card">
+        <div class="card-title">Cierre de evento</div>
+        <div class="form-group"><label>Seleccionar evento</label>
+          <select id="dev-evento-sel" onchange="loadDevolucion()">
+            <option value="">-- Selecciona --</option>
+          </select>
+        </div>
+      </div>
+      <div id="dev-items-container"></div>
+      <div id="dev-btn-container"></div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-tab active" onclick="showPage('dashboard',this)" id="tab-dashboard"><i class="ti ti-layout-dashboard"></i><span>Inicio</span></div>
+    <div class="nav-tab" onclick="showPage('inventario',this)" id="tab-inventario"><i class="ti ti-package"></i><span>Inventario</span></div>
+    <div class="nav-tab" onclick="showPage('cotizador',this)" id="tab-cotizador"><i class="ti ti-file-invoice"></i><span>Cotizar</span></div>
+    <div class="nav-tab" onclick="showPage('eventos',this)" id="tab-eventos"><i class="ti ti-calendar-event"></i><span>Eventos</span></div>
+    <div class="nav-tab" onclick="showPage('calendario',this)" id="tab-calendario"><i class="ti ti-calendar"></i><span>Calendario</span></div>
+    <div class="nav-tab" onclick="showPage('devoluciones',this)" id="tab-devoluciones"><i class="ti ti-rotate-clockwise-2"></i><span>Cierre</span></div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab-btn" onclick="fabAction()" style="display:none;"><i class="ti ti-plus"></i></button>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SHEET: Artículo -->
+<div class="sheet-overlay" id="sheet-item" onclick="closeSheetOnOverlay(event,'sheet-item')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-item-title">Nuevo artículo</div>
+    <div class="form-group"><label>Nombre</label><input type="text" id="ni-nombre" placeholder="Ej. Mantel redondo blanco"></div>
+    <div class="form-group"><label>Categoría</label>
+      <select id="ni-cat">
+        <option>Mesas y sillas</option><option>Manteles</option><option>Decoración</option>
+        <option>Vajilla</option><option>Herramientas</option><option>Iluminación</option><option>Otro</option>
+      </select>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Stock total</label><input type="number" id="ni-stock" placeholder="0" min="1"></div>
+      <div class="form-group"><label>Renta/u ($)</label><input type="number" id="ni-precio" placeholder="0.00" min="0" step="0.01"></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Reposición ($)</label><input type="number" id="ni-repo" placeholder="0.00" min="0"></div>
+      <div class="form-group"><label>Descripción</label><input type="text" id="ni-desc" placeholder="Color, talla..."></div>
+    </div>
+    <div class="info-hint" style="margin-bottom:16px;"><i class="ti ti-sparkles" style="vertical-align:-2px;margin-right:4px;"></i>El folio se genera automáticamente</div>
+    <input type="hidden" id="ni-edit-id">
+    <input type="hidden" id="ni-edit-folio">
+    <button class="btn btn-primary btn-block" onclick="saveItem()" style="margin-bottom:8px;"><i class="ti ti-check"></i> <span id="ni-btn-label">Agregar al inventario</span></button>
+    <button class="btn btn-block" onclick="closeSheet('sheet-item')">Cancelar</button>
+  </div>
+</div>
+
+<!-- SHEET: Detalle artículo -->
+<div class="sheet-overlay" id="sheet-item-detail" onclick="closeSheetOnOverlay(event,'sheet-item-detail')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="detail-nombre"></div>
+    <div style="margin-bottom:14px;"><span class="folio" id="detail-folio"></span><span class="tag" style="margin-left:6px;" id="detail-cat"></span></div>
+    <div class="resumen-box" style="margin-bottom:14px;">
+      <div class="resumen-row"><span>Stock total</span><span id="detail-stock"></span></div>
+      <div class="resumen-row"><span>Disponible</span><span id="detail-disp"></span></div>
+      <div class="resumen-row"><span>Costo renta/u</span><span id="detail-precio"></span></div>
+      <div class="resumen-row"><span>Costo reposición</span><span id="detail-repo"></span></div>
+    </div>
+    <div id="detail-desc-row" class="info-hint" style="margin-bottom:14px;display:none;"></div>
+    <button class="btn btn-primary btn-block" onclick="editItemFromDetail()" style="margin-bottom:8px;"><i class="ti ti-edit"></i> Editar artículo</button>
+    <button class="btn btn-block btn-danger-soft" onclick="deleteItemFromDetail()"><i class="ti ti-trash"></i> Eliminar artículo</button>
+  </div>
+</div>
+
+<!-- SHEET: Detalle evento -->
+<div class="sheet-overlay" id="sheet-evento-detail" onclick="closeSheetOnOverlay(event,'sheet-evento-detail')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="ev-detail-cliente"></div>
+    <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span class="folio" id="ev-detail-folio"></span>
+      <span class="tag" id="ev-detail-tipo"></span>
+      <span class="badge" id="ev-detail-badge"></span>
+    </div>
+    <div class="resumen-box" style="margin-bottom:14px;">
+      <div class="resumen-row"><span>Fecha</span><span id="ev-detail-fecha"></span></div>
+      <div class="resumen-row"><span>Lugar</span><span id="ev-detail-lugar"></span></div>
+      <div class="resumen-row"><span>Total</span><span id="ev-detail-total"></span></div>
+      <div class="resumen-row"><span>Anticipo pagado</span><span id="ev-detail-anticipo"></span></div>
+      <div class="resumen-total"><span>Saldo pendiente</span><span id="ev-detail-saldo"></span></div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:12px;color:var(--ma-purple-mid);font-weight:500;margin-bottom:8px;">Artículos rentados</div>
+      <div id="ev-detail-items"></div>
+    </div>
+    <div class="form-group"><label>Cambiar estatus</label>
+      <select id="ev-estatus-sel">
+        <option value="Cotizado">Cotizado</option>
+        <option value="Anticipo">Anticipo recibido</option>
+        <option value="Confirmado">Confirmado</option>
+        <option value="Pagado">Pagado completo</option>
+        <option value="Cancelado">Cancelado</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="updateEventoEstatus()" style="margin-bottom:8px;"><i class="ti ti-check"></i> Actualizar estatus</button>
+    <button class="btn btn-block btn-danger-soft" onclick="deleteEvento()"><i class="ti ti-trash"></i> Eliminar evento</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  CONFIGURACIÓN SUPABASE
+// ═══════════════════════════════════════════════
+const SUPABASE_URL = 'https://pfhmkgxuyvwtdmpmuuzk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmaG1rZ3h1eXZ3dGRtcG11dXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU4NzAsImV4cCI6MjA5NzM4MTg3MH0.RUHUFUuiu5G7y2qsjll6Yaw5GaZhc4GjUQfcJrlBt4s';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let inventario = [];
+let eventos = [];
+let cotItems = [];
+let currentPage = 'dashboard';
+let currentDetailId = null;
+let currentEventoId = null;
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+const PREFIJOS = {'Mesas y sillas':'SLL','Manteles':'MTL','Decoración':'DEC','Vajilla':'VAJ','Herramientas':'HER','Iluminación':'ILM','Otro':'GEN'};
+const ST_MAP = {Pagado:'badge-green',Confirmado:'badge-amber',Anticipo:'badge-blue',Cotizado:'badge-gray',Cancelado:'badge-red',Cerrado:'badge-purple'};
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+async function init() {
+  setLoading('Conectando con la nube...');
+  try {
+    await loadInventario();
+    await loadEventos();
+    setLoading('Activando sincronización en tiempo real...');
+    setupRealtime();
+    hideLoading();
+    renderDashboard();
+    setSyncStatus('online');
+  } catch(e) {
+    setLoading('Error de conexión. Verifica tu internet.');
+    setSyncStatus('offline');
+    console.error(e);
+  }
+}
+
+function setLoading(msg) { document.getElementById('loading-msg').textContent = msg; }
+function hideLoading() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+}
+
+function setSyncStatus(state) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  dot.className = 'sync-dot' + (state==='syncing'?' syncing':state==='offline'?' offline':'');
+  label.textContent = state==='online'?'En línea':state==='syncing'?'Sincronizando...':'Sin conexión';
+}
+
+// ═══════════════════════════════════════════════
+//  DATA LAYER
+// ═══════════════════════════════════════════════
+async function loadInventario() {
+  const {data,error} = await sb.from('inventario').select('*').order('categoria').order('folio');
+  if (error) throw error;
+  inventario = data || [];
+}
+
+async function loadEventos() {
+  const {data,error} = await sb.from('eventos').select('*').order('fecha');
+  if (error) throw error;
+  eventos = data || [];
+}
+
+async function getNextEvtNum() {
+  const {data} = await sb.from('configuracion').select('valor').eq('clave','next_evt_num').single();
+  const num = parseInt(data?.valor||'1');
+  await sb.from('configuracion').update({valor:String(num+1)}).eq('clave','next_evt_num');
+  return num;
+}
+
+// ═══════════════════════════════════════════════
+//  REALTIME
+// ═══════════════════════════════════════════════
+function setupRealtime() {
+  sb.channel('marea-alta-sync')
+    .on('postgres_changes',{event:'*',schema:'public',table:'inventario'}, async ()=>{
+      await loadInventario();
+      if(currentPage==='inventario') renderInventario();
+      if(currentPage==='dashboard') renderDashboard();
+      showToast('Inventario actualizado');
+    })
+    .on('postgres_changes',{event:'*',schema:'public',table:'eventos'}, async ()=>{
+      await loadEventos();
+      if(currentPage==='eventos') renderEventos();
+      if(currentPage==='dashboard') renderDashboard();
+      if(currentPage==='calendario') renderCalendar();
+      showToast('Eventos actualizados');
+    })
+    .subscribe();
+}
+
+// ═══════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════
+function showPage(id, tabEl) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(tabEl) tabEl.classList.add('active');
+  else document.getElementById('tab-'+id)?.classList.add('active');
+  currentPage = id;
+  document.getElementById('main-content').scrollTop = 0;
+  const fab = document.getElementById('fab-btn');
+  fab.style.display = (id==='inventario'||id==='cotizador') ? 'flex' : 'none';
+  if(id==='dashboard') renderDashboard();
+  if(id==='inventario') renderInventario();
+  if(id==='cotizador') renderCotItems();
+  if(id==='eventos') renderEventos();
+  if(id==='calendario') renderCalendar();
+  if(id==='devoluciones') renderDevoluciones();
+}
+
+function fabAction() {
+  if(currentPage==='inventario') openNewItem();
+  if(currentPage==='cotizador') addCotItem();
+}
+
+// ═══════════════════════════════════════════════
+//  TOAST & SHEETS
+// ═══════════════════════════════════════════════
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+function openSheet(id){document.getElementById(id).classList.add('open');}
+function closeSheet(id){document.getElementById(id).classList.remove('open');}
+function closeSheetOnOverlay(e,id){if(e.target===e.currentTarget)closeSheet(id);}
+
+// ═══════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════
+function renderDashboard() {
+  const now = new Date();
+  const evThisMonth = eventos.filter(e=>{
+    if(!e.fecha) return false;
+    const d=new Date(e.fecha+'T12:00:00');
+    return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  });
+  const totalCobrar = eventos.reduce((s,e)=>{
+    if(e.estatus!=='Cancelado'&&e.estatus!=='Pagado') return s+Math.max(0,(e.total||0)-(e.anticipo||0));
+    return s;
+  },0);
+  const ingresos = evThisMonth.reduce((s,e)=>s+(e.anticipo||0),0);
+  document.getElementById('stat-eventos').textContent = evThisMonth.length;
+  document.getElementById('stat-items').textContent = inventario.length;
+  document.getElementById('stat-cobrar').textContent = '$'+totalCobrar.toLocaleString('es-MX',{maximumFractionDigits:0});
+  document.getElementById('stat-ingresos').textContent = '$'+ingresos.toLocaleString('es-MX',{maximumFractionDigits:0});
+
+  const upcoming = [...eventos].filter(e=>e.estatus!=='Cancelado').sort((a,b)=>new Date(a.fecha||'9999')-new Date(b.fecha||'9999')).slice(0,4);
+  const evList = document.getElementById('dash-eventos-list');
+  if(!upcoming.length) {
+    evList.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-calendar-off"></i><p>Sin eventos registrados aún</p></div></div>';
+  } else {
+    evList.innerHTML='<div class="card" style="padding:0 16px;">'+upcoming.map(e=>`
+      <div class="item-row" onclick="showEventoDetail('${e.id}')">
+        <div><div class="item-name">${e.cliente}</div><div class="item-meta">${e.tipo}${e.fecha?' · '+e.fecha:''}</div></div>
+        <span class="badge ${ST_MAP[e.estatus]||'badge-gray'}">${e.estatus}</span>
+      </div>`).join('')+'</div>';
+  }
+
+  const alertas = document.getElementById('dash-alertas');
+  const low = inventario.filter(i=>i.disponible<5&&i.disponible>=0);
+  if(!low.length) {
+    alertas.innerHTML='<div class="alert alert-info"><i class="ti ti-check" style="font-size:16px;flex-shrink:0;"></i><span>Sin alertas de inventario</span></div>';
+  } else {
+    alertas.innerHTML=low.map(i=>`<div class="alert alert-warn"><i class="ti ti-alert-triangle" style="font-size:16px;flex-shrink:0;"></i><span><strong>${i.nombre}</strong> — solo ${i.disponible} unidades disponibles</span></div>`).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  INVENTARIO
+// ═══════════════════════════════════════════════
+function renderInventario() {
+  const q=(document.getElementById('inv-search')?.value||'').toLowerCase();
+  const data=inventario.filter(i=>!q||i.nombre.toLowerCase().includes(q)||i.folio.toLowerCase().includes(q));
+  const list=document.getElementById('inv-list');
+  if(!data.length){
+    list.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-package-off"></i><p>'+(q?'Sin resultados':'Inventario vacío — toca + para agregar')+'</p></div></div>';
+    return;
+  }
+  const cats={};
+  data.forEach(i=>{if(!cats[i.categoria])cats[i.categoria]=[];cats[i.categoria].push(i);});
+  list.innerHTML=Object.keys(cats).map(cat=>`
+    <div class="section-title">${cat}</div>
+    <div class="card" style="padding:0 16px;">
+      ${cats[cat].map(i=>`
+        <div class="item-row" onclick="showItemDetail('${i.id}')">
+          <div style="flex:1;min-width:0;">
+            <div class="item-name">${i.nombre}</div>
+            <div class="item-meta"><span class="folio" style="font-size:11px;">${i.folio}</span>${i.descripcion?' · '+i.descripcion:''}</div>
+            <div class="progress-bar" style="width:80px;"><div class="progress-fill" style="width:${Math.min(100,Math.round(i.disponible/Math.max(i.stock,1)*100))}%"></div></div>
+          </div>
+          <div style="text-align:right;margin-left:10px;">
+            <div class="item-price">$${parseFloat(i.precio).toFixed(2)}</div>
+            <div style="font-size:11px;color:${i.disponible<5?'#9a2020':'var(--ma-purple-light)'};">${i.disponible}/${i.stock}</div>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function openNewItem() {
+  ['ni-nombre','ni-stock','ni-precio','ni-repo','ni-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ni-edit-id').value='';
+  document.getElementById('ni-edit-folio').value='';
+  document.getElementById('ni-cat').value='Mesas y sillas';
+  document.getElementById('sheet-item-title').textContent='Nuevo artículo';
+  document.getElementById('ni-btn-label').textContent='Agregar al inventario';
+  openSheet('sheet-item');
+}
+
+async function saveItem() {
+  const nombre=document.getElementById('ni-nombre').value.trim();
+  const cat=document.getElementById('ni-cat').value;
+  const stock=parseInt(document.getElementById('ni-stock').value)||0;
+  const precio=parseFloat(document.getElementById('ni-precio').value)||0;
+  const repo=parseFloat(document.getElementById('ni-repo').value)||0;
+  const desc=document.getElementById('ni-desc').value.trim();
+  const editId=document.getElementById('ni-edit-id').value;
+  const editFolio=document.getElementById('ni-edit-folio').value;
+  if(!nombre||!stock||!precio){showToast('Completa nombre, stock y precio');return;}
+  setSyncStatus('syncing');
+  if(editId) {
+    const {error}=await sb.from('inventario').update({nombre,categoria:cat,stock,precio,costo_reposicion:repo,descripcion:desc}).eq('id',editId);
+    if(error){showToast('Error al guardar');setSyncStatus('online');return;}
+    showToast('Artículo actualizado');
+  } else {
+    const prefix=PREFIJOS[cat]||'GEN';
+    const existing=inventario.filter(i=>i.folio.startsWith(prefix+'-'));
+    const n=existing.length+1;
+    const folio=prefix+'-'+String(n).padStart(3,'0');
+    const {error}=await sb.from('inventario').insert({folio,nombre,categoria:cat,stock,disponible:stock,precio,costo_reposicion:repo,descripcion:desc,estado:'Disponible'});
+    if(error){showToast('Error al guardar');setSyncStatus('online');return;}
+    showToast('Artículo agregado: '+folio);
+  }
+  setSyncStatus('online');
+  await loadInventario();
+  closeSheet('sheet-item');
+  renderInventario();
+}
+
+function showItemDetail(id) {
+  const item=inventario.find(i=>i.id===id);
+  if(!item) return;
+  currentDetailId=id;
+  document.getElementById('detail-nombre').textContent=item.nombre;
+  document.getElementById('detail-folio').textContent=item.folio;
+  document.getElementById('detail-cat').textContent=item.categoria;
+  document.getElementById('detail-stock').textContent=item.stock;
+  document.getElementById('detail-disp').textContent=item.disponible;
+  document.getElementById('detail-precio').textContent='$'+parseFloat(item.precio).toFixed(2);
+  document.getElementById('detail-repo').textContent=item.costo_reposicion?'$'+parseFloat(item.costo_reposicion).toFixed(2):'—';
+  const dr=document.getElementById('detail-desc-row');
+  dr.style.display=item.descripcion?'block':'none';
+  dr.textContent=item.descripcion||'';
+  openSheet('sheet-item-detail');
+}
+
+function editItemFromDetail() {
+  const item=inventario.find(i=>i.id===currentDetailId);
+  if(!item) return;
+  closeSheet('sheet-item-detail');
+  document.getElementById('ni-nombre').value=item.nombre;
+  document.getElementById('ni-cat').value=item.categoria;
+  document.getElementById('ni-stock').value=item.stock;
+  document.getElementById('ni-precio').value=item.precio;
+  document.getElementById('ni-repo').value=item.costo_reposicion||'';
+  document.getElementById('ni-desc').value=item.descripcion||'';
+  document.getElementById('ni-edit-id').value=item.id;
+  document.getElementById('ni-edit-folio').value=item.folio;
+  document.getElementById('sheet-item-title').textContent='Editar artículo';
+  document.getElementById('ni-btn-label').textContent='Guardar cambios';
+  openSheet('sheet-item');
+}
+
+async function deleteItemFromDetail() {
+  if(!confirm('¿Eliminar este artículo?')) return;
+  setSyncStatus('syncing');
+  await sb.from('inventario').delete().eq('id',currentDetailId);
+  await loadInventario();
+  setSyncStatus('online');
+  closeSheet('sheet-item-detail');
+  renderInventario();
+  showToast('Artículo eliminado');
+}
+
+// ═══════════════════════════════════════════════
+//  COTIZADOR
+// ═══════════════════════════════════════════════
+function addCotItem(){cotItems.push({folio:'',nombre:'',cantidad:1,precio:0});renderCotItems();}
+
+function renderCotItems() {
+  const cont=document.getElementById('cot-items-list');
+  if(!cotItems.length){
+    cont.innerHTML='<div class="empty-state" style="padding:20px;"><i class="ti ti-file-plus"></i><p>Toca + para agregar artículos</p></div>';
+    calcTotales();return;
+  }
+  cont.innerHTML=cotItems.map((it,idx)=>`
+    <div class="cot-item">
+      <div class="cot-item-top">
+        <input class="cot-folio-input" type="text" placeholder="Folio" value="${it.folio}" oninput="onFolioChange(${idx},this.value)">
+        <span class="cot-item-name">${it.nombre||'<span style="color:var(--ma-purple-light);font-weight:400;">Sin coincidencia</span>'}</span>
+        <button onclick="removeCotItem(${idx})" class="btn btn-icon btn-danger-soft btn-sm" style="padding:6px 8px;"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="cot-item-bottom">
+        <input class="cot-qty" type="number" min="1" value="${it.cantidad}" oninput="onCantChange(${idx},this.value)">
+        <span class="cot-pu">× $${parseFloat(it.precio).toFixed(2)} c/u</span>
+        <span class="cot-subtotal">= $${(it.precio*it.cantidad).toFixed(2)}</span>
+      </div>
+    </div>`).join('');
+  calcTotales();
+}
+
+function onFolioChange(idx,val){
+  cotItems[idx].folio=val.toUpperCase();
+  const found=inventario.find(i=>i.folio===val.toUpperCase());
+  cotItems[idx].nombre=found?found.nombre:'';
+  cotItems[idx].precio=found?parseFloat(found.precio):0;
+  renderCotItems();
+}
+function onCantChange(idx,val){cotItems[idx].cantidad=parseInt(val)||1;calcTotales();}
+function removeCotItem(idx){cotItems.splice(idx,1);renderCotItems();}
+
+function toggleMO(){
+  const t=document.getElementById('mo-tipo').value;
+  document.getElementById('mo-fijo-row').style.display=t==='fijo'?'block':'none';
+  document.getElementById('mo-horas-row').style.display=t==='horas'?'block':'none';
+  calcTotales();
+}
+
+function calcTotales(){
+  const renta=cotItems.reduce((s,i)=>s+i.precio*i.cantidad,0);
+  let mo=0;
+  const t=document.getElementById('mo-tipo')?.value;
+  if(t==='fijo') mo=parseFloat(document.getElementById('mo-val')?.value)||0;
+  else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
+  const sub=renta+mo; const iva=sub*0.16; const total=sub+iva;
+  const ant=parseFloat(document.getElementById('cot-anticipo')?.value)||0;
+  document.getElementById('r-renta').textContent='$'+renta.toFixed(2);
+  document.getElementById('r-mo').textContent='$'+mo.toFixed(2);
+  document.getElementById('r-iva').textContent='$'+iva.toFixed(2);
+  document.getElementById('r-total').textContent='$'+total.toFixed(2);
+  document.getElementById('r-saldo').textContent='$'+Math.max(0,total-ant).toFixed(2);
+}
+
+async function guardarCotizacion() {
+  const cliente=document.getElementById('cot-cliente')?.value.trim();
+  if(!cliente){showToast('Ingresa el nombre del cliente');return;}
+  if(!cotItems.length){showToast('Agrega al menos un artículo');return;}
+  const tipo=document.getElementById('cot-tipo').value;
+  const fecha=document.getElementById('cot-fecha').value||null;
+  const lugar=document.getElementById('cot-lugar').value.trim();
+  let mo=0;
+  const moTipo=document.getElementById('mo-tipo').value;
+  if(moTipo==='fijo') mo=parseFloat(document.getElementById('mo-val')?.value)||0;
+  else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
+  const renta=cotItems.reduce((s,i)=>s+i.precio*i.cantidad,0);
+  const total=parseFloat(((renta+mo)*1.16).toFixed(2));
+  const anticipo=parseFloat(document.getElementById('cot-anticipo')?.value)||0;
+  setSyncStatus('syncing');
+  const num=await getNextEvtNum();
+  const folio='EVT-'+new Date().getFullYear()+'-'+String(num).padStart(3,'0');
+  const {error}=await sb.from('eventos').insert({
+    folio,cliente,tipo,fecha,lugar,total,anticipo,mano_obra:mo,
+    items:JSON.stringify(cotItems),
+    estatus:anticipo>0?'Anticipo':'Cotizado'
+  });
+  if(error){showToast('Error al guardar');setSyncStatus('online');return;}
+  cotItems=[];
+  ['cot-cliente','cot-fecha','cot-lugar','mo-val','cot-anticipo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  await loadEventos();
+  setSyncStatus('online');
+  showToast('Evento guardado: '+folio);
+  showPage('eventos',document.getElementById('tab-eventos'));
+}
+
+// ═══════════════════════════════════════════════
+//  EVENTOS
+// ═══════════════════════════════════════════════
+function renderEventos() {
+  const list=document.getElementById('eventos-list');
+  if(!eventos.length){
+    list.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-calendar-off"></i><p>Sin eventos — crea uno desde el cotizador</p></div></div>';
+    return;
+  }
+  const sorted=[...eventos].sort((a,b)=>new Date(a.fecha||'9999')-new Date(b.fecha||'9999'));
+  list.innerHTML=sorted.map(e=>{
+    const saldo=Math.max(0,(e.total||0)-(e.anticipo||0));
+    return `<div class="card" onclick="showEventoDetail('${e.id}')" style="cursor:pointer;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div><div style="font-size:16px;font-weight:500;">${e.cliente}</div>
+        <div style="font-size:12px;color:var(--ma-purple-light);margin-top:2px;">${e.tipo}${e.fecha?' · '+e.fecha:''}</div></div>
+        <span class="badge ${ST_MAP[e.estatus]||'badge-gray'}">${e.estatus}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span style="color:var(--ma-purple-mid);">Total: <strong style="color:var(--ma-purple-dark);">$${(e.total||0).toLocaleString('es-MX',{maximumFractionDigits:0})}</strong></span>
+        <span style="color:${saldo>0?'var(--ma-purple-mid)':'#1a7a44'};">Saldo: $${saldo.toLocaleString('es-MX',{maximumFractionDigits:0})}</span>
+      </div>
+      <div style="font-size:11px;color:var(--ma-purple-light);margin-top:5px;"><span class="folio" style="font-size:10px;">${e.folio}</span>${e.lugar?' · '+e.lugar:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function showEventoDetail(id) {
+  const ev=eventos.find(e=>e.id===id);
+  if(!ev) return;
+  currentEventoId=id;
+  document.getElementById('ev-detail-cliente').textContent=ev.cliente;
+  document.getElementById('ev-detail-folio').textContent=ev.folio;
+  document.getElementById('ev-detail-tipo').textContent=ev.tipo;
+  const badge=document.getElementById('ev-detail-badge');
+  badge.textContent=ev.estatus; badge.className='badge '+(ST_MAP[ev.estatus]||'badge-gray');
+  document.getElementById('ev-detail-fecha').textContent=ev.fecha||'—';
+  document.getElementById('ev-detail-lugar').textContent=ev.lugar||'—';
+  document.getElementById('ev-detail-total').textContent='$'+(ev.total||0).toFixed(2);
+  document.getElementById('ev-detail-anticipo').textContent='$'+(ev.anticipo||0).toFixed(2);
+  document.getElementById('ev-detail-saldo').textContent='$'+Math.max(0,(ev.total||0)-(ev.anticipo||0)).toFixed(2);
+  document.getElementById('ev-estatus-sel').value=ev.estatus;
+  let items=[];
+  try{ items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[]; }catch(e){}
+  const itemsEl=document.getElementById('ev-detail-items');
+  itemsEl.innerHTML=items.map(i=>`
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:0.5px solid rgba(107,74,142,0.1);">
+      <span>${i.nombre||i.folio} × ${i.cantidad}</span>
+      <span style="color:var(--ma-purple-mid);">$${(i.precio*i.cantidad).toFixed(2)}</span>
+    </div>`).join('')||'<div style="font-size:13px;color:var(--ma-purple-light);">Sin artículos registrados</div>';
+  openSheet('sheet-evento-detail');
+}
+
+async function updateEventoEstatus() {
+  const ev=eventos.find(e=>e.id===currentEventoId);
+  if(!ev) return;
+  const nuevoEstatus=document.getElementById('ev-estatus-sel').value;
+  setSyncStatus('syncing');
+  await sb.from('eventos').update({estatus:nuevoEstatus}).eq('id',currentEventoId);
+  await loadEventos();
+  setSyncStatus('online');
+  closeSheet('sheet-evento-detail');
+  renderEventos();
+  showToast('Estatus actualizado');
+}
+
+async function deleteEvento() {
+  if(!confirm('¿Eliminar este evento?')) return;
+  setSyncStatus('syncing');
+  await sb.from('eventos').delete().eq('id',currentEventoId);
+  await loadEventos();
+  setSyncStatus('online');
+  closeSheet('sheet-evento-detail');
+  renderEventos();
+  showToast('Evento eliminado');
+}
+
+// ═══════════════════════════════════════════════
+//  CALENDARIO
+// ═══════════════════════════════════════════════
+function renderCalendar() {
+  const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
+  const days=['D','L','M','M','J','V','S'];
+  const first=new Date(calYear,calMonth,1).getDay();
+  const total=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date();
+  let html=days.map(d=>`<div class="cal-day-head">${d}</div>`).join('');
+  for(let i=0;i<first;i++){
+    const pd=new Date(calYear,calMonth,-first+i+1).getDate();
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${pd}</div></div>`;
+  }
+  for(let d=1;d<=total;d++){
+    const isToday=calYear===today.getFullYear()&&calMonth===today.getMonth()&&d===today.getDate();
+    const dayEvs=eventos.filter(e=>{
+      if(!e.fecha||e.estatus==='Cancelado') return false;
+      const ed=new Date(e.fecha+'T12:00:00');
+      return ed.getDate()===d&&ed.getMonth()===calMonth&&ed.getFullYear()===calYear;
+    });
+    const dots=dayEvs.map(e=>{
+      let cls='dot-boda';
+      if(e.tipo==='Baby shower') cls='dot-baby';
+      else if(e.tipo==='XV Años'||e.tipo==='Cumpleaños') cls='dot-cumple';
+      return `<div class="cal-dot ${cls}"></div>`;
+    }).join('');
+    html+=`<div class="cal-day${isToday?' today':''}${dayEvs.length?' has-event':''}"><div class="cal-day-num">${d}</div>${dots}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+
+  const monthEvs=[...eventos].filter(e=>{
+    if(!e.fecha||e.estatus==='Cancelado') return false;
+    const d=new Date(e.fecha+'T12:00:00');
+    return d.getMonth()===calMonth&&d.getFullYear()===calYear;
+  }).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+
+  const el=document.getElementById('cal-events-list');
+  el.innerHTML=!monthEvs.length
+    ?'<div class="card" style="text-align:center;color:var(--ma-purple-light);font-size:13px;padding:20px;">Sin eventos este mes</div>'
+    :monthEvs.map(e=>`
+      <div class="card" style="padding:12px 16px;cursor:pointer;" onclick="showEventoDetail('${e.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><div style="font-size:14px;font-weight:500;">${e.cliente}</div>
+          <div style="font-size:12px;color:var(--ma-purple-light);">${e.tipo} · ${e.fecha}</div></div>
+          <span class="badge ${ST_MAP[e.estatus]||'badge-gray'}">${e.estatus}</span>
+        </div>
+      </div>`).join('');
+}
+
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+
+// ═══════════════════════════════════════════════
+//  DEVOLUCIONES
+// ═══════════════════════════════════════════════
+function renderDevoluciones() {
+  const sel=document.getElementById('dev-evento-sel');
+  const activeEvs=eventos.filter(e=>e.estatus!=='Cancelado'&&e.estatus!=='Cerrado');
+  sel.innerHTML='<option value="">-- Selecciona --</option>'+
+    activeEvs.map(e=>`<option value="${e.id}">${e.cliente} — ${e.fecha||'Sin fecha'} (${e.folio})</option>`).join('');
+  document.getElementById('dev-items-container').innerHTML='';
+  document.getElementById('dev-btn-container').innerHTML='';
+}
+
+function loadDevolucion() {
+  const id=document.getElementById('dev-evento-sel').value;
+  const cont=document.getElementById('dev-items-container');
+  const btnCont=document.getElementById('dev-btn-container');
+  if(!id){cont.innerHTML='';btnCont.innerHTML='';return;}
+  const ev=eventos.find(e=>e.id===id);
+  let items=[];
+  try{items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[];}catch(e){}
+  if(!ev||!items.length){
+    cont.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-box-off"></i><p>Sin artículos en este evento</p></div></div>';
+    btnCont.innerHTML='';return;
+  }
+  cont.innerHTML='<div class="section-title">Verificar artículos devueltos</div>'+
+    items.map((it,idx)=>`
+      <div class="card" style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div><div style="font-size:14px;font-weight:500;">${it.nombre||it.folio}</div>
+          <div style="font-size:12px;color:var(--ma-purple-light);">Rentados: ${it.cantidad}</div></div>
+          <span class="folio">${it.folio}</span>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group"><label>Devueltos</label>
+            <input type="number" id="dev-ret-${idx}" value="${it.cantidad}" min="0" max="${it.cantidad}"
+              style="padding:10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:15px;background:var(--ma-white);color:var(--ma-purple-dark);">
+          </div>
+          <div class="form-group"><label>Estado</label>
+            <select id="dev-est-${idx}" style="padding:10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:14px;background:var(--ma-white);color:var(--ma-purple-dark);-webkit-appearance:none;">
+              <option value="bien">Bien</option>
+              <option value="dano">Con daño</option>
+              <option value="perdida">Pérdida total</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Cargo por daño ($)</label>
+          <input type="number" id="dev-cargo-${idx}" placeholder="0" min="0"
+            style="padding:10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:15px;background:var(--ma-white);color:var(--ma-purple-dark);">
+        </div>
+      </div>`).join('');
+  btnCont.innerHTML=`<button class="btn btn-primary btn-block" onclick="cerrarEvento('${id}')">
+    <i class="ti ti-check"></i> Cerrar evento y actualizar stock
+  </button><div style="height:12px;"></div>`;
+}
+
+async function cerrarEvento(id) {
+  const ev=eventos.find(e=>e.id===id);
+  if(!ev) return;
+  let items=[];
+  try{items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[];}catch(e){}
+  let totalCargo=0;
+  setSyncStatus('syncing');
+  for(let idx=0;idx<items.length;idx++){
+    const it=items[idx];
+    const ret=parseInt(document.getElementById('dev-ret-'+idx)?.value)||0;
+    const cargo=parseFloat(document.getElementById('dev-cargo-'+idx)?.value)||0;
+    totalCargo+=cargo;
+    const invItem=inventario.find(i=>i.folio===it.folio);
+    if(invItem){
+      const newDisp=Math.min(invItem.stock,invItem.disponible+ret);
+      await sb.from('inventario').update({disponible:newDisp}).eq('id',invItem.id);
+    }
+  }
+  await sb.from('eventos').update({estatus:'Cerrado',cargo_danos:totalCargo}).eq('id',id);
+  await loadInventario();
+  await loadEventos();
+  setSyncStatus('online');
+  renderDevoluciones();
+  showToast(totalCargo>0?'Evento cerrado · Cargo daños: $'+totalCargo.toFixed(2):'Evento cerrado exitosamente');
+}
+
+// ═══════════════════════════════════════════════
+//  ARRANQUE
+// ═══════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
