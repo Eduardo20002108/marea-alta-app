@@ -12,55 +12,90 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --ma-lavender:#D6E0F5; --ma-lavender-mid:#B8C8EE; --ma-lavender-deep:#8FA8DC;
-  --ma-purple-dark:#3D1A5E; --ma-purple-mid:#6B4A8E; --ma-purple-light:#9B7BB8;
-  --ma-purple-pale:#EDE5F5; --ma-white:#F9F7FD; --ma-surface:#FFFFFF;
-  --nav-h:64px; --header-h:60px;
+:root{
+  --ma-lavender:#D6E0F5;--ma-lavender-mid:#B8C8EE;--ma-lavender-deep:#8FA8DC;
+  --ma-purple-dark:#3D1A5E;--ma-purple-mid:#6B4A8E;--ma-purple-light:#9B7BB8;
+  --ma-purple-pale:#EDE5F5;--ma-white:#F9F7FD;--ma-surface:#FFFFFF;
+  --nav-h:64px;--header-h:60px;--sidebar-w:220px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;background:var(--ma-lavender);font-family:'Inter',sans-serif;color:var(--ma-purple-dark);}
-.app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+html,body{height:100%;font-family:'Inter',sans-serif;color:var(--ma-purple-dark);overflow:hidden;}
 
-/* HEADER */
-.header{height:var(--header-h);background:var(--ma-purple-dark);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:10;}
+/* ── LAYOUT ── */
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;background:var(--ma-lavender);}
+.header{height:var(--header-h);background:var(--ma-purple-dark);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;z-index:30;}
 .header-logo{display:flex;flex-direction:column;}
 .header-logo .marea{font-family:'Playfair Display',serif;font-style:italic;font-size:18px;font-weight:500;color:var(--ma-lavender);line-height:1;}
 .header-logo .alta{font-family:'Playfair Display',serif;font-weight:600;font-size:20px;color:var(--ma-lavender);line-height:1;margin-top:-2px;}
 .header-logo .ev-tag{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ma-purple-light);margin-top:1px;}
 .sync-status{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(214,224,245,0.65);}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0;transition:background 0.3s;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0;transition:background .3s;}
 .sync-dot.syncing{background:#facc15;animation:pulse 1s infinite;}
 .sync-dot.offline{background:#f87171;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 
-/* CONTENT */
-.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(var(--nav-h)+16px);}
+/* ── BODY AREA ── */
+.body-area{flex:1;display:flex;overflow:hidden;}
 
-/* BOTTOM NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--ma-purple-dark);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom);}
-.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:rgba(214,224,245,0.45);transition:color 0.15s;padding:8px 2px;}
-.nav-tab i{font-size:21px;}
+/* ── SIDEBAR (desktop) ── */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--ma-purple-dark);display:flex;flex-direction:column;padding:20px 0;overflow-y:auto;}
+.nav-section-label{padding:12px 18px 4px;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(214,224,245,0.35);font-weight:500;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;font-size:13px;color:rgba(214,224,245,0.65);border-left:2px solid transparent;transition:all .15s;}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:var(--ma-lavender);}
+.nav-item.active{color:var(--ma-lavender);border-left-color:var(--ma-lavender-mid);background:rgba(214,224,245,0.1);font-weight:500;}
+.nav-item i{font-size:17px;}
+
+/* ── CONTENT ── */
+.content-area{flex:1;overflow-y:auto;overflow-x:hidden;}
+.content-inner{padding:24px;max-width:900px;}
+
+/* ── BOTTOM NAV (mobile) ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--ma-purple-dark);display:none;z-index:20;padding-bottom:env(safe-area-inset-bottom);}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:rgba(214,224,245,0.45);transition:color .15s;padding:8px 2px;}
+.nav-tab i{font-size:20px;}
 .nav-tab span{font-size:9px;font-weight:500;letter-spacing:.02em;}
 .nav-tab.active{color:var(--ma-lavender);}
 
-/* PAGES */
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .sidebar{display:none;}
+  .bottom-nav{display:flex;}
+  .content-inner{padding:14px 14px calc(var(--nav-h)+14px);}
+  .desktop-only{display:none!important;}
+  .stats-grid{grid-template-columns:1fr 1fr!important;}
+  .fin-grid{grid-template-columns:1fr!important;}
+}
+@media(min-width:701px){
+  .mobile-only{display:none!important;}
+  .content-inner{padding:24px;}
+}
+
+/* ── PAGES ── */
 .page{display:none;}.page.active{display:block;}
 
-/* CARDS */
-.card{background:var(--ma-surface);border:0.5px solid rgba(107,74,142,0.18);border-radius:14px;padding:16px;margin-bottom:12px;}
-.card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:500;color:var(--ma-purple-dark);margin-bottom:12px;}
+/* ── CARDS ── */
+.card{background:var(--ma-surface);border:0.5px solid rgba(107,74,142,0.18);border-radius:14px;padding:18px 20px;margin-bottom:14px;}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:500;color:var(--ma-purple-dark);margin-bottom:14px;}
+.card-sm{background:var(--ma-surface);border:0.5px solid rgba(107,74,142,0.18);border-radius:12px;padding:14px 16px;}
 
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.stat-card{background:var(--ma-surface);border:0.5px solid rgba(107,74,142,0.18);border-radius:12px;padding:14px;}
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.stat-card{background:var(--ma-surface);border:0.5px solid rgba(107,74,142,0.18);border-radius:12px;padding:14px 16px;}
 .stat-label{font-size:11px;color:var(--ma-purple-mid);margin-bottom:5px;}
 .stat-value{font-size:22px;font-weight:500;color:var(--ma-purple-dark);}
 .stat-sub{font-size:10px;color:var(--ma-purple-light);margin-top:2px;}
+.stat-positive{color:#1a7a44!important;}
+.stat-negative{color:#9a2020!important;}
 
-.section-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--ma-purple-mid);margin:16px 0 8px;}
+/* ── PAGE HEADER ── */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:500;color:var(--ma-purple-dark);}
+.page-subtitle{font-size:13px;color:var(--ma-purple-mid);margin-top:2px;}
 
-/* BADGES */
+/* ── SECTION TITLE ── */
+.section-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--ma-purple-mid);margin:18px 0 8px;}
+
+/* ── BADGES ── */
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;}
 .badge-green{background:#E2F4EC;color:#1a7a44;}
 .badge-amber{background:#FDF3E0;color:#8a5c00;}
@@ -68,78 +103,106 @@ html,body{height:100%;overflow:hidden;background:var(--ma-lavender);font-family:
 .badge-blue{background:var(--ma-lavender);color:var(--ma-purple-dark);}
 .badge-gray{background:var(--ma-purple-pale);color:var(--ma-purple-mid);}
 .badge-purple{background:var(--ma-purple-pale);color:var(--ma-purple-dark);}
+.badge-ingreso{background:#E2F4EC;color:#1a7a44;}
+.badge-egreso{background:#FCE8E8;color:#9a2020;}
 
 .folio{font-family:monospace;font-size:12px;color:var(--ma-purple-mid);font-weight:500;background:var(--ma-purple-pale);padding:2px 7px;border-radius:4px;}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;background:var(--ma-purple-pale);color:var(--ma-purple-dark);}
 
-/* FORMS */
+/* ── FORMS ── */
 .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
 .form-group label{font-size:12px;color:var(--ma-purple-mid);font-weight:500;}
-.form-group input,.form-group select,.form-group textarea{
-  padding:11px 12px;border:0.5px solid rgba(107,74,142,0.3);border-radius:10px;
-  font-size:15px;background:var(--ma-white);color:var(--ma-purple-dark);
-  font-family:'Inter',sans-serif;width:100%;-webkit-appearance:none;appearance:none;
-}
+.form-group input,.form-group select,.form-group textarea{padding:10px 12px;border:0.5px solid rgba(107,74,142,0.3);border-radius:10px;font-size:14px;background:var(--ma-white);color:var(--ma-purple-dark);font-family:'Inter',sans-serif;width:100%;-webkit-appearance:none;appearance:none;}
 .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--ma-purple-mid);box-shadow:0 0 0 3px rgba(107,74,142,0.12);}
-.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+@media(max-width:500px){.form-row-2,.form-row-3{grid-template-columns:1fr;}}
 
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;border-radius:10px;border:0.5px solid rgba(107,74,142,0.3);background:var(--ma-white);color:var(--ma-purple-dark);font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s;-webkit-tap-highlight-color:transparent;}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:10px;border:0.5px solid rgba(107,74,142,0.3);background:var(--ma-white);color:var(--ma-purple-dark);font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.btn:hover{background:var(--ma-purple-pale);}
 .btn:active{transform:scale(0.97);}
 .btn-primary{background:var(--ma-purple-dark);border-color:var(--ma-purple-dark);color:var(--ma-lavender);}
-.btn-primary:active{background:var(--ma-purple-mid);}
+.btn-primary:hover{background:var(--ma-purple-mid);}
+.btn-success{background:#1a7a44;border-color:#1a7a44;color:#fff;}
+.btn-danger{background:#9a2020;border-color:#9a2020;color:#fff;}
 .btn-block{width:100%;}
-.btn-sm{padding:8px 12px;font-size:13px;}
-.btn-icon{padding:9px;border-radius:9px;}
+.btn-sm{padding:7px 12px;font-size:12px;}
+.btn-icon{padding:8px;border-radius:9px;}
 .btn-danger-soft{border-color:rgba(154,32,32,0.3);color:#9a2020;background:none;}
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 
-/* ITEM ROWS */
-.item-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:0.5px solid rgba(107,74,142,0.1);cursor:pointer;}
+/* ── ITEM ROWS ── */
+.item-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:0.5px solid rgba(107,74,142,0.1);cursor:pointer;}
 .item-row:last-child{border-bottom:none;}
-.item-row:active{background:rgba(107,74,142,0.04);}
+.item-row:hover{background:rgba(107,74,142,0.03);}
 .item-name{font-size:14px;font-weight:500;color:var(--ma-purple-dark);}
 .item-meta{font-size:12px;color:var(--ma-purple-light);margin-top:2px;}
-.item-price{font-size:15px;font-weight:500;color:var(--ma-purple-dark);}
 
-/* PROGRESS */
+/* ── PROGRESS ── */
 .progress-bar{background:var(--ma-lavender);border-radius:20px;height:5px;overflow:hidden;margin-top:5px;}
 .progress-fill{height:100%;border-radius:20px;background:var(--ma-purple-mid);}
 
-/* FAB */
-.fab{position:fixed;bottom:calc(var(--nav-h)+16px);right:16px;width:52px;height:52px;border-radius:50%;background:var(--ma-purple-dark);color:var(--ma-lavender);border:none;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:15;box-shadow:0 4px 18px rgba(61,26,94,0.4);transition:transform 0.15s;}
-.fab:active{transform:scale(0.91);}
+/* ── FAB (mobile) ── */
+.fab{position:fixed;bottom:calc(var(--nav-h)+14px);right:16px;width:50px;height:50px;border-radius:50%;background:var(--ma-purple-dark);color:var(--ma-lavender);border:none;font-size:22px;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:15;box-shadow:0 4px 18px rgba(61,26,94,0.4);}
+@media(max-width:700px){.fab{display:flex;}}
 
-/* SHEETS */
+/* ── SHEETS (mobile) ── */
 .sheet-overlay{position:fixed;inset:0;background:rgba(61,26,94,0.5);z-index:50;display:none;align-items:flex-end;}
 .sheet-overlay.open{display:flex;}
-.sheet{background:var(--ma-white);border-radius:20px 20px 0 0;width:100%;max-height:92dvh;overflow-y:auto;padding:0 16px calc(env(safe-area-inset-bottom)+20px);animation:slideUp .22s ease;}
+.sheet{background:var(--ma-white);border-radius:20px 20px 0 0;width:100%;max-height:92dvh;overflow-y:auto;padding:0 18px calc(env(safe-area-inset-bottom)+20px);animation:slideUp .22s ease;}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 .sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(107,74,142,0.2);margin:12px auto 16px;}
 .sheet-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:500;color:var(--ma-purple-dark);margin-bottom:16px;}
 
-/* COTIZADOR */
+/* ── MODAL (desktop) ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(61,26,94,0.45);z-index:50;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--ma-white);border-radius:16px;padding:28px;width:520px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;border:0.5px solid rgba(107,74,142,0.2);}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:500;color:var(--ma-purple-dark);}
+
+/* ── COTIZADOR ── */
 .cot-item{background:var(--ma-purple-pale);border-radius:10px;padding:12px;margin-bottom:8px;}
 .cot-item-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .cot-folio-input{width:95px;padding:8px 10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:8px;font-size:13px;font-family:monospace;background:var(--ma-white);color:var(--ma-purple-mid);text-transform:uppercase;}
 .cot-item-name{flex:1;font-size:13px;color:var(--ma-purple-dark);font-weight:500;}
 .cot-item-bottom{display:flex;align-items:center;gap:8px;}
-.cot-qty{width:60px;padding:8px;border:0.5px solid rgba(107,74,142,0.3);border-radius:8px;font-size:15px;text-align:center;background:var(--ma-white);color:var(--ma-purple-dark);}
+.cot-qty{width:60px;padding:8px;border:0.5px solid rgba(107,74,142,0.3);border-radius:8px;font-size:14px;text-align:center;background:var(--ma-white);color:var(--ma-purple-dark);}
 .cot-pu{font-size:12px;color:var(--ma-purple-light);flex:1;}
-.cot-subtotal{font-size:15px;font-weight:500;color:var(--ma-purple-dark);}
+.cot-subtotal{font-size:14px;font-weight:500;color:var(--ma-purple-dark);}
 
-/* RESUMEN */
+/* ── RESUMEN ── */
 .resumen-box{background:var(--ma-lavender);border:0.5px solid var(--ma-lavender-mid);border-radius:12px;padding:14px 16px;margin-top:12px;}
 .resumen-row{display:flex;justify-content:space-between;font-size:13px;color:var(--ma-purple-mid);padding:4px 0;}
 .resumen-total{display:flex;justify-content:space-between;font-size:17px;font-weight:500;color:var(--ma-purple-dark);padding-top:10px;margin-top:4px;border-top:0.5px solid var(--ma-lavender-deep);}
-.saldo-row{display:flex;justify-content:space-between;font-size:14px;font-weight:500;margin-top:12px;color:var(--ma-purple-dark);}
-.saldo-val{color:var(--ma-purple-mid);}
 
-/* CALENDAR */
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.cal-month{font-family:'Playfair Display',serif;font-size:18px;font-weight:500;color:var(--ma-purple-dark);}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+/* ── FINANZAS ── */
+.fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.fin-chart{display:flex;flex-direction:column;gap:6px;}
+.fin-bar-row{display:flex;align-items:center;gap:10px;font-size:12px;}
+.fin-bar-label{width:80px;color:var(--ma-purple-mid);flex-shrink:0;text-align:right;}
+.fin-bar-track{flex:1;background:var(--ma-lavender);border-radius:20px;height:8px;overflow:hidden;}
+.fin-bar-fill-ing{height:100%;border-radius:20px;background:#1a7a44;}
+.fin-bar-fill-eg{height:100%;border-radius:20px;background:#9a2020;}
+.fin-bar-val{width:70px;font-size:12px;font-weight:500;color:var(--ma-purple-dark);}
+.movimiento-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:0.5px solid rgba(107,74,142,0.1);}
+.movimiento-row:last-child{border-bottom:none;}
+.mov-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+.mov-icon.ing{background:#E2F4EC;color:#1a7a44;}
+.mov-icon.eg{background:#FCE8E8;color:#9a2020;}
+.mov-info{flex:1;min-width:0;}
+.mov-concepto{font-size:13px;font-weight:500;color:var(--ma-purple-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mov-meta{font-size:11px;color:var(--ma-purple-light);margin-top:1px;}
+.mov-monto{font-size:14px;font-weight:500;flex-shrink:0;}
+.mov-monto.ing{color:#1a7a44;}
+.mov-monto.eg{color:#9a2020;}
+
+/* ── CALENDAR ── */
+.cal-grid-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
 .cal-day-head{text-align:center;font-size:10px;color:var(--ma-purple-mid);font-weight:500;padding:4px 0;}
-.cal-day{min-height:48px;border:0.5px solid rgba(107,74,142,0.12);border-radius:7px;padding:5px 4px;background:var(--ma-white);}
-.cal-day.other-month{opacity:0.3;}
+.cal-day{min-height:52px;border:0.5px solid rgba(107,74,142,0.12);border-radius:7px;padding:5px 4px;background:var(--ma-white);}
+.cal-day.other-month{opacity:.3;}
 .cal-day.today{border-color:var(--ma-purple-mid);border-width:1.5px;}
 .cal-day.has-event{background:var(--ma-purple-pale);}
 .cal-day-num{font-size:12px;font-weight:500;color:var(--ma-purple-dark);margin-bottom:2px;}
@@ -148,49 +211,56 @@ html,body{height:100%;overflow:hidden;background:var(--ma-lavender);font-family:
 .dot-baby{background:var(--ma-lavender-deep);}
 .dot-cumple{background:#4ade80;}
 
-/* ALERTS */
+/* ── ALERTS ── */
 .alert{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:10px;font-size:13px;margin-bottom:8px;}
 .alert-warn{background:#FDF3E0;color:#8a5c00;}
 .alert-danger{background:#FCE8E8;color:#9a2020;}
 .alert-info{background:var(--ma-lavender);color:var(--ma-purple-dark);}
+.alert-success{background:#E2F4EC;color:#1a7a44;}
 
-/* TOAST */
-.toast{position:fixed;bottom:calc(var(--nav-h)+80px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--ma-purple-dark);color:var(--ma-lavender);padding:12px 20px;border-radius:24px;font-size:13px;font-weight:500;z-index:100;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:85vw;text-align:center;}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ma-purple-dark);color:var(--ma-lavender);padding:12px 20px;border-radius:24px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:88vw;text-align:center;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* EMPTY */
+/* ── EMPTY ── */
 .empty-state{text-align:center;padding:36px 20px;color:var(--ma-purple-light);}
-.empty-state i{font-size:40px;display:block;margin-bottom:10px;opacity:0.3;}
+.empty-state i{font-size:38px;display:block;margin-bottom:10px;opacity:.3;}
 .empty-state p{font-size:14px;}
 
-/* INFO HINT */
-.info-hint{font-size:12px;color:var(--ma-purple-mid);background:var(--ma-lavender);padding:10px 13px;border-radius:9px;margin-bottom:12px;}
-
-/* LOADING */
-.loading-screen{position:fixed;inset:0;background:var(--ma-purple-dark);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:16px;}
-.loading-logo-marea{font-family:'Playfair Display',serif;font-style:italic;font-size:36px;font-weight:500;color:var(--ma-lavender);}
-.loading-logo-alta{font-family:'Playfair Display',serif;font-weight:600;font-size:42px;color:var(--ma-lavender);margin-top:-8px;}
-.loading-tag{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ma-purple-light);margin-top:2px;}
-.loading-spinner{width:32px;height:32px;border:2px solid rgba(214,224,245,0.2);border-top-color:var(--ma-lavender-mid);border-radius:50%;animation:spin .8s linear infinite;margin-top:24px;}
-.loading-msg{font-size:13px;color:rgba(214,224,245,0.5);}
+/* ── LOADING ── */
+.loading-screen{position:fixed;inset:0;background:var(--ma-purple-dark);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;gap:12px;}
+.loading-marea{font-family:'Playfair Display',serif;font-style:italic;font-size:38px;font-weight:500;color:var(--ma-lavender);}
+.loading-alta{font-family:'Playfair Display',serif;font-weight:600;font-size:44px;color:var(--ma-lavender);margin-top:-10px;}
+.loading-tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ma-purple-light);}
+.loading-spinner{width:30px;height:30px;border:2px solid rgba(214,224,245,0.2);border-top-color:var(--ma-lavender-mid);border-radius:50%;animation:spin .8s linear infinite;margin-top:20px;}
+.loading-msg{font-size:13px;color:rgba(214,224,245,0.45);}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;background:var(--ma-purple-pale);color:var(--ma-purple-dark);}
-::-webkit-scrollbar{width:0;}
+.info-hint{font-size:12px;color:var(--ma-purple-mid);background:var(--ma-lavender);padding:10px 13px;border-radius:9px;margin-bottom:12px;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(107,74,142,0.2);border-radius:2px;}
 
-@media(min-width:600px){
-  .content{max-width:480px;margin:0 auto;}
-  .fab{right:calc(50% - 240px + 16px);}
-  .toast{bottom:calc(var(--nav-h)+90px);}
+/* ── PDF PRINT ── */
+@media print{
+  .sidebar,.bottom-nav,.fab,.header,.no-print{display:none!important;}
+  body,html{overflow:visible!important;height:auto!important;}
+  .app,.body-area,.content-area{overflow:visible!important;height:auto!important;}
+  .content-inner{padding:20px!important;max-width:100%!important;}
+  .card{break-inside:avoid;box-shadow:none;border:1px solid #ddd;}
+  .print-header{display:block!important;}
 }
+.print-header{display:none;text-align:center;margin-bottom:24px;}
+.print-header h1{font-family:'Playfair Display',serif;font-size:28px;color:var(--ma-purple-dark);}
+.print-header p{font-size:13px;color:var(--ma-purple-mid);margin-top:4px;}
 </style>
 </head>
 <body>
 
 <!-- LOADING -->
 <div class="loading-screen" id="loading">
-  <div class="loading-logo-marea">Marea</div>
-  <div class="loading-logo-alta">Alta</div>
+  <div class="loading-marea">Marea</div>
+  <div class="loading-alta">Alta</div>
   <div class="loading-tag">Eventos</div>
   <div class="loading-spinner"></div>
   <div class="loading-msg" id="loading-msg">Conectando con la nube...</div>
@@ -211,463 +281,464 @@ html,body{height:100%;overflow:hidden;background:var(--ma-lavender);font-family:
     </div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content" id="main-content">
+  <div class="body-area">
 
-    <!-- DASHBOARD -->
-    <div class="page active" id="page-dashboard">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Eventos este mes</div>
-          <div class="stat-value" id="stat-eventos">—</div>
-          <div class="stat-sub">registrados</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Artículos</div>
-          <div class="stat-value" id="stat-items">—</div>
-          <div class="stat-sub">en inventario</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Por cobrar</div>
-          <div class="stat-value" id="stat-cobrar">—</div>
-          <div class="stat-sub">saldo pendiente</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Ingresos mes</div>
-          <div class="stat-value" id="stat-ingresos">—</div>
-          <div class="stat-sub">anticipos recibidos</div>
-        </div>
-      </div>
-      <div class="section-title">Próximos eventos</div>
-      <div id="dash-eventos-list"><div class="card"><div class="empty-state"><i class="ti ti-loader"></i><p>Cargando...</p></div></div></div>
-      <div class="section-title">Alertas de inventario</div>
-      <div id="dash-alertas"></div>
+    <!-- SIDEBAR (desktop) -->
+    <div class="sidebar">
+      <div class="nav-section-label">Principal</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)" id="snav-dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+      <div class="nav-item" onclick="showPage('inventario',this)" id="snav-inventario"><i class="ti ti-package"></i> Inventario</div>
+      <div class="nav-section-label">Operaciones</div>
+      <div class="nav-item" onclick="showPage('cotizador',this)" id="snav-cotizador"><i class="ti ti-file-invoice"></i> Cotizador</div>
+      <div class="nav-item" onclick="showPage('eventos',this)" id="snav-eventos"><i class="ti ti-calendar-event"></i> Eventos</div>
+      <div class="nav-item" onclick="showPage('calendario',this)" id="snav-calendario"><i class="ti ti-calendar"></i> Calendario</div>
+      <div class="nav-section-label">Finanzas</div>
+      <div class="nav-item" onclick="showPage('finanzas',this)" id="snav-finanzas"><i class="ti ti-chart-line"></i> Ingresos y egresos</div>
+      <div class="nav-section-label">Post-evento</div>
+      <div class="nav-item" onclick="showPage('devoluciones',this)" id="snav-devoluciones"><i class="ti ti-rotate-clockwise-2"></i> Devoluciones</div>
     </div>
 
-    <!-- INVENTARIO -->
-    <div class="page" id="page-inventario">
-      <div class="card" style="padding:12px;">
-        <input type="text" id="inv-search" placeholder="Buscar por nombre o folio..."
-          style="width:100%;padding:10px 12px;border:0.5px solid rgba(107,74,142,0.3);border-radius:10px;font-size:14px;background:var(--ma-white);color:var(--ma-purple-dark);font-family:Inter,sans-serif;"
-          oninput="renderInventario()">
-      </div>
-      <div id="inv-list"></div>
-    </div>
+    <!-- CONTENT -->
+    <div class="content-area" id="main-content">
+      <div class="content-inner">
 
-    <!-- COTIZADOR -->
-    <div class="page" id="page-cotizador">
-      <div class="card">
-        <div class="card-title">Datos del evento</div>
-        <div class="form-group"><label>Cliente</label><input type="text" id="cot-cliente" placeholder="Nombre completo"></div>
-        <div class="form-row-2">
-          <div class="form-group"><label>Tipo</label>
-            <select id="cot-tipo">
-              <option>Boda</option><option>Baby shower</option><option>XV Años</option>
-              <option>Cumpleaños</option><option>Aniversario</option><option>Corporativo</option><option>Otro</option>
-            </select>
+        <!-- DASHBOARD -->
+        <div class="page active" id="page-dashboard">
+          <div class="page-header">
+            <div><div class="page-title">Dashboard</div><div class="page-subtitle" id="dash-fecha"></div></div>
           </div>
-          <div class="form-group"><label>Fecha</label><input type="date" id="cot-fecha"></div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Eventos este mes</div><div class="stat-value" id="stat-eventos">—</div><div class="stat-sub">registrados</div></div>
+            <div class="stat-card"><div class="stat-label">Artículos</div><div class="stat-value" id="stat-items">—</div><div class="stat-sub">en inventario</div></div>
+            <div class="stat-card"><div class="stat-label">Ingresos mes</div><div class="stat-value" id="stat-ingresos">—</div><div class="stat-sub">cobrado</div></div>
+            <div class="stat-card"><div class="stat-label">Utilidad mes</div><div class="stat-value" id="stat-utilidad">—</div><div class="stat-sub">ingresos − egresos</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="desktop-grid">
+            <div>
+              <div class="section-title">Próximos eventos</div>
+              <div class="card" id="dash-eventos-list" style="padding:0 16px;"></div>
+            </div>
+            <div>
+              <div class="section-title">Últimos movimientos</div>
+              <div class="card" id="dash-movimientos" style="padding:0 16px;"></div>
+            </div>
+          </div>
+          <div class="section-title">Alertas</div>
+          <div id="dash-alertas"></div>
         </div>
-        <div class="form-group"><label>Lugar</label><input type="text" id="cot-lugar" placeholder="Salón, domicilio..."></div>
-      </div>
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <div class="card-title" style="margin:0;">Artículos</div>
-          <button class="btn btn-sm btn-primary" onclick="addCotItem()"><i class="ti ti-plus"></i> Agregar</button>
+
+        <!-- INVENTARIO -->
+        <div class="page" id="page-inventario">
+          <div class="page-header">
+            <div><div class="page-title">Inventario</div><div class="page-subtitle">Catálogo con folio único</div></div>
+            <button class="btn btn-primary desktop-only" onclick="openItemModal()"><i class="ti ti-plus"></i> Nuevo artículo</button>
+          </div>
+          <div class="card" style="padding:12px 14px;margin-bottom:12px;">
+            <input type="text" id="inv-search" placeholder="Buscar por nombre o folio..."
+              style="width:100%;padding:9px 12px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:14px;background:var(--ma-white);color:var(--ma-purple-dark);font-family:Inter,sans-serif;"
+              oninput="renderInventario()">
+          </div>
+          <div id="inv-list"></div>
         </div>
-        <div class="info-hint"><i class="ti ti-info-circle" style="vertical-align:-2px;margin-right:4px;"></i>Escribe el folio — precio y nombre se llenan solos</div>
-        <div id="cot-items-list"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Mano de obra</div>
-        <div class="form-group"><label>Tipo</label>
-          <select id="mo-tipo" onchange="toggleMO()">
-            <option value="fijo">Fee fijo por evento</option>
-            <option value="horas">Por horas</option>
-          </select>
-        </div>
-        <div id="mo-fijo-row"><div class="form-group"><label>Monto fijo ($)</label><input type="number" id="mo-val" placeholder="0" min="0" oninput="calcTotales()"></div></div>
-        <div id="mo-horas-row" style="display:none;">
-          <div class="form-row-2">
-            <div class="form-group"><label>Horas</label><input type="number" id="mo-horas" placeholder="0" min="0" oninput="calcTotales()"></div>
-            <div class="form-group"><label>Tarifa/hora ($)</label><input type="number" id="mo-tarifa" placeholder="0" min="0" oninput="calcTotales()"></div>
+
+        <!-- COTIZADOR -->
+        <div class="page" id="page-cotizador">
+          <div class="page-header">
+            <div><div class="page-title">Cotizador</div><div class="page-subtitle">Genera cotizaciones vinculadas al inventario</div></div>
+            <button class="btn btn-primary desktop-only" onclick="addCotItem()"><i class="ti ti-plus"></i> Agregar artículo</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;" id="cot-layout">
+            <div>
+              <div class="card">
+                <div class="card-title">Datos del evento</div>
+                <div class="form-row-2">
+                  <div class="form-group"><label>Cliente</label><input type="text" id="cot-cliente" placeholder="Nombre completo"></div>
+                  <div class="form-group"><label>Tipo</label>
+                    <select id="cot-tipo"><option>Boda</option><option>Baby shower</option><option>XV Años</option><option>Cumpleaños</option><option>Aniversario</option><option>Corporativo</option><option>Otro</option></select>
+                  </div>
+                </div>
+                <div class="form-row-2">
+                  <div class="form-group"><label>Fecha</label><input type="date" id="cot-fecha"></div>
+                  <div class="form-group"><label>Lugar</label><input type="text" id="cot-lugar" placeholder="Salón, domicilio..."></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-title">Artículos a rentar</div>
+                <div class="info-hint"><i class="ti ti-info-circle" style="vertical-align:-2px;margin-right:4px;"></i>Escribe el folio — nombre y precio se llenan solos</div>
+                <div id="cot-items-list"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Mano de obra</div>
+                <div class="form-row-2">
+                  <div class="form-group"><label>Tipo</label>
+                    <select id="mo-tipo" onchange="toggleMO()"><option value="fijo">Fee fijo</option><option value="horas">Por horas</option></select>
+                  </div>
+                  <div class="form-group" id="mo-fijo-row"><label>Monto ($)</label><input type="number" id="mo-val" placeholder="0" min="0" oninput="calcTotales()"></div>
+                </div>
+                <div class="form-row-2" id="mo-horas-row" style="display:none;">
+                  <div class="form-group"><label>Horas</label><input type="number" id="mo-horas" placeholder="0" min="0" oninput="calcTotales()"></div>
+                  <div class="form-group"><label>Tarifa/hora ($)</label><input type="number" id="mo-tarifa" placeholder="0" min="0" oninput="calcTotales()"></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="card" style="position:sticky;top:0;">
+                <div class="card-title">Resumen</div>
+                <div class="resumen-box">
+                  <div class="resumen-row"><span>Renta artículos</span><span id="r-renta">$0.00</span></div>
+                  <div class="resumen-row"><span>Mano de obra</span><span id="r-mo">$0.00</span></div>
+                  <div class="resumen-row"><span>IVA (16%)</span><span id="r-iva">$0.00</span></div>
+                  <div class="resumen-total"><span>Total</span><span id="r-total">$0.00</span></div>
+                </div>
+                <div class="form-group" style="margin-top:14px;"><label>Anticipo / Depósito ($)</label><input type="number" id="cot-anticipo" placeholder="0" min="0" oninput="calcTotales()"></div>
+                <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500;margin-bottom:16px;"><span>Saldo pendiente</span><span style="color:var(--ma-purple-mid);" id="r-saldo">$0.00</span></div>
+                <button class="btn btn-primary btn-block" onclick="guardarCotizacion()"><i class="ti ti-device-floppy"></i> Guardar como evento</button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Resumen</div>
-        <div class="resumen-box">
-          <div class="resumen-row"><span>Renta artículos</span><span id="r-renta">$0.00</span></div>
-          <div class="resumen-row"><span>Mano de obra</span><span id="r-mo">$0.00</span></div>
-          <div class="resumen-row"><span>IVA (16%)</span><span id="r-iva">$0.00</span></div>
-          <div class="resumen-total"><span>Total</span><span id="r-total">$0.00</span></div>
+
+        <!-- EVENTOS -->
+        <div class="page" id="page-eventos">
+          <div class="page-header">
+            <div><div class="page-title">Eventos</div><div class="page-subtitle">Seguimiento de contratos</div></div>
+            <div class="toolbar">
+              <select id="ev-filter" onchange="renderEventos()" class="btn btn-sm" style="cursor:pointer;">
+                <option value="">Todos los estatus</option>
+                <option>Cotizado</option><option>Anticipo</option><option>Confirmado</option><option>Pagado</option><option>Cancelado</option><option>Cerrado</option>
+              </select>
+            </div>
+          </div>
+          <div id="eventos-list"></div>
         </div>
-        <div class="form-group" style="margin-top:12px;"><label>Anticipo / Depósito ($)</label><input type="number" id="cot-anticipo" placeholder="0" min="0" oninput="calcTotales()"></div>
-        <div class="saldo-row"><span>Saldo pendiente</span><span class="saldo-val" id="r-saldo">$0.00</span></div>
-      </div>
-      <button class="btn btn-primary btn-block" onclick="guardarCotizacion()" style="margin-bottom:12px;">
-        <i class="ti ti-device-floppy"></i> Guardar como evento
-      </button>
-    </div>
 
-    <!-- EVENTOS -->
-    <div class="page" id="page-eventos">
-      <div id="eventos-list"></div>
-    </div>
-
-    <!-- CALENDARIO -->
-    <div class="page" id="page-calendario">
-      <div class="card">
-        <div class="cal-header">
-          <button class="btn btn-icon btn-sm" onclick="changeMonth(-1)"><i class="ti ti-chevron-left"></i></button>
-          <span class="cal-month" id="cal-title"></span>
-          <button class="btn btn-icon btn-sm" onclick="changeMonth(1)"><i class="ti ti-chevron-right"></i></button>
+        <!-- CALENDARIO -->
+        <div class="page" id="page-calendario">
+          <div class="page-header">
+            <div><div class="page-title">Calendario</div><div class="page-subtitle">Disponibilidad y eventos</div></div>
+            <div class="toolbar">
+              <button class="btn btn-sm btn-icon" onclick="changeMonth(-1)"><i class="ti ti-chevron-left"></i></button>
+              <span id="cal-title" style="font-size:14px;font-weight:500;min-width:130px;text-align:center;color:var(--ma-purple-dark);"></span>
+              <button class="btn btn-sm btn-icon" onclick="changeMonth(1)"><i class="ti ti-chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap;">
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ma-purple-mid);"><span style="width:8px;height:8px;border-radius:50%;background:var(--ma-purple-mid);display:inline-block;"></span>Boda/Aniversario</span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ma-purple-mid);"><span style="width:8px;height:8px;border-radius:50%;background:var(--ma-lavender-deep);display:inline-block;"></span>Baby shower</span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ma-purple-mid);"><span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block;"></span>XV/Cumpleaños</span>
+            </div>
+            <div class="cal-grid-cal" id="cal-grid"></div>
+          </div>
+          <div class="section-title">Eventos del mes</div>
+          <div id="cal-events-list"></div>
         </div>
-        <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
-          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ma-purple-mid);"><span style="width:8px;height:8px;border-radius:50%;background:var(--ma-purple-mid);display:inline-block;"></span>Boda/Aniversario</span>
-          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ma-purple-mid);"><span style="width:8px;height:8px;border-radius:50%;background:var(--ma-lavender-deep);display:inline-block;"></span>Baby shower</span>
-          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ma-purple-mid);"><span style="width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block;"></span>XV/Cumpleaños</span>
+
+        <!-- FINANZAS -->
+        <div class="page" id="page-finanzas">
+          <div class="page-header">
+            <div><div class="page-title">Ingresos y egresos</div><div class="page-subtitle">Control financiero de Marea Alta</div></div>
+            <div class="toolbar no-print">
+              <select id="fin-mes" onchange="renderFinanzas()" class="btn btn-sm" style="cursor:pointer;"></select>
+              <button class="btn btn-sm" onclick="imprimirReporte()"><i class="ti ti-file-type-pdf"></i> Reporte PDF</button>
+              <button class="btn btn-primary btn-sm" onclick="openMovModal('ingreso')"><i class="ti ti-plus"></i> Ingreso</button>
+              <button class="btn btn-danger btn-sm" onclick="openMovModal('egreso')"><i class="ti ti-minus"></i> Egreso</button>
+            </div>
+          </div>
+
+          <!-- Print header -->
+          <div class="print-header" id="print-header">
+            <h1>Marea Alta Eventos</h1>
+            <p id="print-periodo"></p>
+            <p style="font-size:11px;color:#888;margin-top:2px;">Reporte generado el <span id="print-fecha"></span></p>
+          </div>
+
+          <div class="fin-grid">
+            <div class="card-sm">
+              <div class="stat-label">Total ingresos</div>
+              <div class="stat-value stat-positive" id="fin-total-ing">$0</div>
+            </div>
+            <div class="card-sm">
+              <div class="stat-label">Total egresos</div>
+              <div class="stat-value stat-negative" id="fin-total-eg">$0</div>
+            </div>
+            <div class="card-sm">
+              <div class="stat-label">Utilidad neta</div>
+              <div class="stat-value" id="fin-utilidad">$0</div>
+            </div>
+            <div class="card-sm">
+              <div class="stat-label">Margen</div>
+              <div class="stat-value" id="fin-margen">0%</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="fin-split">
+            <div>
+              <div class="section-title">Ingresos del mes</div>
+              <div class="card" style="padding:0 16px;" id="fin-ing-list"></div>
+            </div>
+            <div>
+              <div class="section-title">Egresos del mes</div>
+              <div class="card" style="padding:0 16px;" id="fin-eg-list"></div>
+            </div>
+          </div>
+
+          <div class="section-title">Resumen por categoría (egresos)</div>
+          <div class="card" id="fin-cats"></div>
         </div>
-        <div class="cal-grid" id="cal-grid"></div>
-      </div>
-      <div class="section-title">Eventos del mes</div>
-      <div id="cal-events-list"></div>
-    </div>
 
-    <!-- DEVOLUCIONES -->
-    <div class="page" id="page-devoluciones">
-      <div class="card">
-        <div class="card-title">Cierre de evento</div>
-        <div class="form-group"><label>Seleccionar evento</label>
-          <select id="dev-evento-sel" onchange="loadDevolucion()">
-            <option value="">-- Selecciona --</option>
-          </select>
+        <!-- DEVOLUCIONES -->
+        <div class="page" id="page-devoluciones">
+          <div class="page-header"><div><div class="page-title">Devoluciones</div><div class="page-subtitle">Cierre de evento y verificación</div></div></div>
+          <div class="card">
+            <div class="card-title">Seleccionar evento a cerrar</div>
+            <div class="form-row-2">
+              <div class="form-group"><label>Evento</label>
+                <select id="dev-evento-sel" onchange="loadDevolucion()"><option value="">-- Selecciona --</option></select>
+              </div>
+            </div>
+          </div>
+          <div id="dev-items-container"></div>
+          <div id="dev-btn-container"></div>
         </div>
-      </div>
-      <div id="dev-items-container"></div>
-      <div id="dev-btn-container"></div>
-    </div>
 
-  </div><!-- /content -->
+      </div><!-- /content-inner -->
+    </div><!-- /content-area -->
+  </div><!-- /body-area -->
 
-  <!-- BOTTOM NAV -->
-  <div class="bottom-nav">
-    <div class="nav-tab active" onclick="showPage('dashboard',this)" id="tab-dashboard"><i class="ti ti-layout-dashboard"></i><span>Inicio</span></div>
-    <div class="nav-tab" onclick="showPage('inventario',this)" id="tab-inventario"><i class="ti ti-package"></i><span>Inventario</span></div>
-    <div class="nav-tab" onclick="showPage('cotizador',this)" id="tab-cotizador"><i class="ti ti-file-invoice"></i><span>Cotizar</span></div>
-    <div class="nav-tab" onclick="showPage('eventos',this)" id="tab-eventos"><i class="ti ti-calendar-event"></i><span>Eventos</span></div>
-    <div class="nav-tab" onclick="showPage('calendario',this)" id="tab-calendario"><i class="ti ti-calendar"></i><span>Calendario</span></div>
-    <div class="nav-tab" onclick="showPage('devoluciones',this)" id="tab-devoluciones"><i class="ti ti-rotate-clockwise-2"></i><span>Cierre</span></div>
+  <!-- BOTTOM NAV (mobile) -->
+  <div class="bottom-nav mobile-only">
+    <div class="nav-tab active" onclick="showPage('dashboard',this)" id="bnav-dashboard"><i class="ti ti-layout-dashboard"></i><span>Inicio</span></div>
+    <div class="nav-tab" onclick="showPage('inventario',this)" id="bnav-inventario"><i class="ti ti-package"></i><span>Inventario</span></div>
+    <div class="nav-tab" onclick="showPage('cotizador',this)" id="bnav-cotizador"><i class="ti ti-file-invoice"></i><span>Cotizar</span></div>
+    <div class="nav-tab" onclick="showPage('eventos',this)" id="bnav-eventos"><i class="ti ti-calendar-event"></i><span>Eventos</span></div>
+    <div class="nav-tab" onclick="showPage('finanzas',this)" id="bnav-finanzas"><i class="ti ti-chart-line"></i><span>Finanzas</span></div>
+    <div class="nav-tab" onclick="showPage('devoluciones',this)" id="bnav-devoluciones"><i class="ti ti-rotate-clockwise-2"></i><span>Cierre</span></div>
   </div>
 </div>
 
-<!-- FAB -->
-<button class="fab" id="fab-btn" onclick="fabAction()" style="display:none;"><i class="ti ti-plus"></i></button>
+<!-- FAB (mobile) -->
+<button class="fab mobile-only" id="fab-btn" onclick="fabAction()"><i class="ti ti-plus"></i></button>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- SHEET: Artículo -->
-<div class="sheet-overlay" id="sheet-item" onclick="closeSheetOnOverlay(event,'sheet-item')">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="sheet-item-title">Nuevo artículo</div>
-    <div class="form-group"><label>Nombre</label><input type="text" id="ni-nombre" placeholder="Ej. Mantel redondo blanco"></div>
-    <div class="form-group"><label>Categoría</label>
-      <select id="ni-cat">
-        <option>Mesas y sillas</option><option>Manteles</option><option>Decoración</option>
-        <option>Vajilla</option><option>Herramientas</option><option>Iluminación</option><option>Otro</option>
-      </select>
-    </div>
-    <div class="form-row-2">
-      <div class="form-group"><label>Stock total</label><input type="number" id="ni-stock" placeholder="0" min="1"></div>
-      <div class="form-group"><label>Renta/u ($)</label><input type="number" id="ni-precio" placeholder="0.00" min="0" step="0.01"></div>
-    </div>
-    <div class="form-row-2">
-      <div class="form-group"><label>Reposición ($)</label><input type="number" id="ni-repo" placeholder="0.00" min="0"></div>
-      <div class="form-group"><label>Descripción</label><input type="text" id="ni-desc" placeholder="Color, talla..."></div>
-    </div>
-    <div class="info-hint" style="margin-bottom:16px;"><i class="ti ti-sparkles" style="vertical-align:-2px;margin-right:4px;"></i>El folio se genera automáticamente</div>
-    <input type="hidden" id="ni-edit-id">
-    <input type="hidden" id="ni-edit-folio">
-    <button class="btn btn-primary btn-block" onclick="saveItem()" style="margin-bottom:8px;"><i class="ti ti-check"></i> <span id="ni-btn-label">Agregar al inventario</span></button>
-    <button class="btn btn-block" onclick="closeSheet('sheet-item')">Cancelar</button>
+<!-- MODAL: Artículo (desktop) / Sheet (mobile) -->
+<div class="modal-overlay desktop-only" id="modal-item" onclick="closeModalOnOverlay(event,'modal-item')">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="modal-item-title">Nuevo artículo</span><button class="btn btn-sm btn-icon" onclick="closeModal('modal-item')"><i class="ti ti-x"></i></button></div>
+    <div id="item-form-content"></div>
   </div>
 </div>
-
-<!-- SHEET: Detalle artículo -->
-<div class="sheet-overlay" id="sheet-item-detail" onclick="closeSheetOnOverlay(event,'sheet-item-detail')">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="detail-nombre"></div>
-    <div style="margin-bottom:14px;"><span class="folio" id="detail-folio"></span><span class="tag" style="margin-left:6px;" id="detail-cat"></span></div>
-    <div class="resumen-box" style="margin-bottom:14px;">
-      <div class="resumen-row"><span>Stock total</span><span id="detail-stock"></span></div>
-      <div class="resumen-row"><span>Disponible</span><span id="detail-disp"></span></div>
-      <div class="resumen-row"><span>Costo renta/u</span><span id="detail-precio"></span></div>
-      <div class="resumen-row"><span>Costo reposición</span><span id="detail-repo"></span></div>
-    </div>
-    <div id="detail-desc-row" class="info-hint" style="margin-bottom:14px;display:none;"></div>
-    <button class="btn btn-primary btn-block" onclick="editItemFromDetail()" style="margin-bottom:8px;"><i class="ti ti-edit"></i> Editar artículo</button>
-    <button class="btn btn-block btn-danger-soft" onclick="deleteItemFromDetail()"><i class="ti ti-trash"></i> Eliminar artículo</button>
-  </div>
+<div class="sheet-overlay mobile-only" id="sheet-item" onclick="closeSheetOnOverlay(event,'sheet-item')">
+  <div class="sheet"><div class="sheet-handle"></div><div class="sheet-title" id="sheet-item-title">Nuevo artículo</div><div id="item-form-content-m"></div></div>
 </div>
 
-<!-- SHEET: Detalle evento -->
-<div class="sheet-overlay" id="sheet-evento-detail" onclick="closeSheetOnOverlay(event,'sheet-evento-detail')">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="ev-detail-cliente"></div>
-    <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <span class="folio" id="ev-detail-folio"></span>
-      <span class="tag" id="ev-detail-tipo"></span>
-      <span class="badge" id="ev-detail-badge"></span>
-    </div>
-    <div class="resumen-box" style="margin-bottom:14px;">
-      <div class="resumen-row"><span>Fecha</span><span id="ev-detail-fecha"></span></div>
-      <div class="resumen-row"><span>Lugar</span><span id="ev-detail-lugar"></span></div>
-      <div class="resumen-row"><span>Total</span><span id="ev-detail-total"></span></div>
-      <div class="resumen-row"><span>Anticipo pagado</span><span id="ev-detail-anticipo"></span></div>
-      <div class="resumen-total"><span>Saldo pendiente</span><span id="ev-detail-saldo"></span></div>
-    </div>
-    <div style="margin-bottom:14px;">
-      <div style="font-size:12px;color:var(--ma-purple-mid);font-weight:500;margin-bottom:8px;">Artículos rentados</div>
-      <div id="ev-detail-items"></div>
-    </div>
-    <div class="form-group"><label>Cambiar estatus</label>
-      <select id="ev-estatus-sel">
-        <option value="Cotizado">Cotizado</option>
-        <option value="Anticipo">Anticipo recibido</option>
-        <option value="Confirmado">Confirmado</option>
-        <option value="Pagado">Pagado completo</option>
-        <option value="Cancelado">Cancelado</option>
-      </select>
-    </div>
-    <button class="btn btn-primary btn-block" onclick="updateEventoEstatus()" style="margin-bottom:8px;"><i class="ti ti-check"></i> Actualizar estatus</button>
-    <button class="btn btn-block btn-danger-soft" onclick="deleteEvento()"><i class="ti ti-trash"></i> Eliminar evento</button>
-  </div>
+<!-- MODAL: Detalle artículo -->
+<div class="modal-overlay desktop-only" id="modal-item-detail" onclick="closeModalOnOverlay(event,'modal-item-detail')">
+  <div class="modal"><div class="modal-header"><span class="modal-title" id="d-nombre-d"></span><button class="btn btn-sm btn-icon" onclick="closeModal('modal-item-detail')"><i class="ti ti-x"></i></button></div><div id="item-detail-content-d"></div></div>
+</div>
+<div class="sheet-overlay mobile-only" id="sheet-item-detail" onclick="closeSheetOnOverlay(event,'sheet-item-detail')">
+  <div class="sheet"><div class="sheet-handle"></div><div class="sheet-title" id="d-nombre-m"></div><div id="item-detail-content-m"></div></div>
+</div>
+
+<!-- MODAL: Detalle evento -->
+<div class="modal-overlay desktop-only" id="modal-evento-detail" onclick="closeModalOnOverlay(event,'modal-evento-detail')">
+  <div class="modal"><div class="modal-header"><span class="modal-title" id="ev-d-cliente-d"></span><button class="btn btn-sm btn-icon" onclick="closeModal('modal-evento-detail')"><i class="ti ti-x"></i></button></div><div id="ev-detail-content-d"></div></div>
+</div>
+<div class="sheet-overlay mobile-only" id="sheet-evento-detail" onclick="closeSheetOnOverlay(event,'sheet-evento-detail')">
+  <div class="sheet"><div class="sheet-handle"></div><div class="sheet-title" id="ev-d-cliente-m"></div><div id="ev-detail-content-m"></div></div>
+</div>
+
+<!-- MODAL: Movimiento financiero -->
+<div class="modal-overlay desktop-only" id="modal-mov" onclick="closeModalOnOverlay(event,'modal-mov')">
+  <div class="modal"><div class="modal-header"><span class="modal-title" id="modal-mov-title">Nuevo ingreso</span><button class="btn btn-sm btn-icon" onclick="closeModal('modal-mov')"><i class="ti ti-x"></i></button></div><div id="mov-form-d"></div></div>
+</div>
+<div class="sheet-overlay mobile-only" id="sheet-mov" onclick="closeSheetOnOverlay(event,'sheet-mov')">
+  <div class="sheet"><div class="sheet-handle"></div><div class="sheet-title" id="sheet-mov-title">Nuevo ingreso</div><div id="mov-form-m"></div></div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-//  CONFIGURACIÓN SUPABASE
-// ═══════════════════════════════════════════════
-const SUPABASE_URL = 'https://pfhmkgxuyvwtdmpmuuzk.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmaG1rZ3h1eXZ3dGRtcG11dXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU4NzAsImV4cCI6MjA5NzM4MTg3MH0.RUHUFUuiu5G7y2qsjll6Yaw5GaZhc4GjUQfcJrlBt4s';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL='https://pfhmkgxuyvwtdmpmuuzk.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmaG1rZ3h1eXZ3dGRtcG11dXprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU4NzAsImV4cCI6MjA5NzM4MTg3MH0.RUHUFUuiu5G7y2qsjll6Yaw5GaZhc4GjUQfcJrlBt4s';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-// ═══════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════
-let inventario = [];
-let eventos = [];
-let cotItems = [];
-let currentPage = 'dashboard';
-let currentDetailId = null;
-let currentEventoId = null;
-let calYear = new Date().getFullYear();
-let calMonth = new Date().getMonth();
+let inventario=[],eventos=[],ingresos=[],egresos=[],cotItems=[];
+let currentPage='dashboard',currentItemId=null,currentEventoId=null,currentMovTipo='ingreso';
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+const PREFIJOS={'Mesas y sillas':'SLL','Manteles':'MTL','Decoración':'DEC','Vajilla':'VAJ','Herramientas':'HER','Iluminación':'ILM','Otro':'GEN'};
+const ST_MAP={Pagado:'badge-green',Confirmado:'badge-amber',Anticipo:'badge-blue',Cotizado:'badge-gray',Cancelado:'badge-red',Cerrado:'badge-purple'};
+const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const isMobile=()=>window.innerWidth<=700;
 
-const PREFIJOS = {'Mesas y sillas':'SLL','Manteles':'MTL','Decoración':'DEC','Vajilla':'VAJ','Herramientas':'HER','Iluminación':'ILM','Otro':'GEN'};
-const ST_MAP = {Pagado:'badge-green',Confirmado:'badge-amber',Anticipo:'badge-blue',Cotizado:'badge-gray',Cancelado:'badge-red',Cerrado:'badge-purple'};
-
-// ═══════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════
-async function init() {
+// ── INIT ──────────────────────────────────────
+async function init(){
   setLoading('Conectando con la nube...');
-  try {
-    await loadInventario();
-    await loadEventos();
-    setLoading('Activando sincronización en tiempo real...');
+  try{
+    await Promise.all([loadInventario(),loadEventos(),loadIngresos(),loadEgresos()]);
     setupRealtime();
+    populateFinMes();
     hideLoading();
     renderDashboard();
     setSyncStatus('online');
-  } catch(e) {
-    setLoading('Error de conexión. Verifica tu internet.');
-    setSyncStatus('offline');
-    console.error(e);
-  }
+    document.getElementById('dash-fecha').textContent=MONTHS[new Date().getMonth()]+' '+new Date().getFullYear();
+    // Responsive cotizador
+    if(isMobile()){
+      const cl=document.getElementById('cot-layout');
+      if(cl){cl.style.gridTemplateColumns='1fr';} 
+    }
+    window.addEventListener('resize',()=>{
+      const cl=document.getElementById('cot-layout');
+      if(cl) cl.style.gridTemplateColumns=isMobile()?'1fr':'1fr 340px';
+      const fs=document.querySelector('.fin-split');
+      if(fs) fs.style.gridTemplateColumns=isMobile()?'1fr':'1fr 1fr';
+      const dg=document.querySelector('.desktop-grid');
+      if(dg) dg.style.gridTemplateColumns=isMobile()?'1fr':'1fr 1fr';
+    });
+  }catch(e){setLoading('Error de conexión. Verifica tu internet.');setSyncStatus('offline');console.error(e);}
+}
+function setLoading(m){document.getElementById('loading-msg').textContent=m;}
+function hideLoading(){document.getElementById('loading').style.display='none';document.getElementById('app').style.display='flex';}
+function setSyncStatus(s){
+  const dot=document.getElementById('sync-dot'),label=document.getElementById('sync-label');
+  dot.className='sync-dot'+(s==='syncing'?' syncing':s==='offline'?' offline':'');
+  label.textContent=s==='online'?'En línea':s==='syncing'?'Sincronizando...':'Sin conexión';
 }
 
-function setLoading(msg) { document.getElementById('loading-msg').textContent = msg; }
-function hideLoading() {
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-}
+// ── DATA ──────────────────────────────────────
+async function loadInventario(){const{data,error}=await sb.from('inventario').select('*').order('categoria').order('folio');if(error)throw error;inventario=data||[];}
+async function loadEventos(){const{data,error}=await sb.from('eventos').select('*').order('fecha');if(error)throw error;eventos=data||[];}
+async function loadIngresos(){const{data,error}=await sb.from('ingresos').select('*').order('fecha',{ascending:false});if(error)throw error;ingresos=data||[];}
+async function loadEgresos(){const{data,error}=await sb.from('egresos').select('*').order('fecha',{ascending:false});if(error)throw error;egresos=data||[];}
+async function getNextEvtNum(){const{data}=await sb.from('configuracion').select('valor').eq('clave','next_evt_num').single();const n=parseInt(data?.valor||'1');await sb.from('configuracion').update({valor:String(n+1)}).eq('clave','next_evt_num');return n;}
 
-function setSyncStatus(state) {
-  const dot = document.getElementById('sync-dot');
-  const label = document.getElementById('sync-label');
-  dot.className = 'sync-dot' + (state==='syncing'?' syncing':state==='offline'?' offline':'');
-  label.textContent = state==='online'?'En línea':state==='syncing'?'Sincronizando...':'Sin conexión';
-}
-
-// ═══════════════════════════════════════════════
-//  DATA LAYER
-// ═══════════════════════════════════════════════
-async function loadInventario() {
-  const {data,error} = await sb.from('inventario').select('*').order('categoria').order('folio');
-  if (error) throw error;
-  inventario = data || [];
-}
-
-async function loadEventos() {
-  const {data,error} = await sb.from('eventos').select('*').order('fecha');
-  if (error) throw error;
-  eventos = data || [];
-}
-
-async function getNextEvtNum() {
-  const {data} = await sb.from('configuracion').select('valor').eq('clave','next_evt_num').single();
-  const num = parseInt(data?.valor||'1');
-  await sb.from('configuracion').update({valor:String(num+1)}).eq('clave','next_evt_num');
-  return num;
-}
-
-// ═══════════════════════════════════════════════
-//  REALTIME
-// ═══════════════════════════════════════════════
-function setupRealtime() {
-  sb.channel('marea-alta-sync')
-    .on('postgres_changes',{event:'*',schema:'public',table:'inventario'}, async ()=>{
-      await loadInventario();
-      if(currentPage==='inventario') renderInventario();
-      if(currentPage==='dashboard') renderDashboard();
-      showToast('Inventario actualizado');
-    })
-    .on('postgres_changes',{event:'*',schema:'public',table:'eventos'}, async ()=>{
-      await loadEventos();
-      if(currentPage==='eventos') renderEventos();
-      if(currentPage==='dashboard') renderDashboard();
-      if(currentPage==='calendario') renderCalendar();
-      showToast('Eventos actualizados');
-    })
+// ── REALTIME ──────────────────────────────────
+function setupRealtime(){
+  sb.channel('marea-sync')
+    .on('postgres_changes',{event:'*',schema:'public',table:'inventario'},async()=>{await loadInventario();if(currentPage==='inventario')renderInventario();if(currentPage==='dashboard')renderDashboard();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'eventos'},async()=>{await loadEventos();if(currentPage==='eventos')renderEventos();if(currentPage==='dashboard')renderDashboard();if(currentPage==='calendario')renderCalendar();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'ingresos'},async()=>{await loadIngresos();if(currentPage==='finanzas')renderFinanzas();if(currentPage==='dashboard')renderDashboard();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'egresos'},async()=>{await loadEgresos();if(currentPage==='finanzas')renderFinanzas();if(currentPage==='dashboard')renderDashboard();})
     .subscribe();
 }
 
-// ═══════════════════════════════════════════════
-//  NAVIGATION
-// ═══════════════════════════════════════════════
-function showPage(id, tabEl) {
+// ── NAVIGATION ────────────────────────────────
+function showPage(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  if(tabEl) tabEl.classList.add('active');
-  else document.getElementById('tab-'+id)?.classList.add('active');
-  currentPage = id;
-  document.getElementById('main-content').scrollTop = 0;
-  const fab = document.getElementById('fab-btn');
-  fab.style.display = (id==='inventario'||id==='cotizador') ? 'flex' : 'none';
-  if(id==='dashboard') renderDashboard();
-  if(id==='inventario') renderInventario();
-  if(id==='cotizador') renderCotItems();
-  if(id==='eventos') renderEventos();
-  if(id==='calendario') renderCalendar();
-  if(id==='devoluciones') renderDevoluciones();
+  if(el) el.classList.add('active');
+  const sn=document.getElementById('snav-'+id);if(sn)sn.classList.add('active');
+  const bn=document.getElementById('bnav-'+id);if(bn)bn.classList.add('active');
+  currentPage=id;
+  document.getElementById('main-content').scrollTop=0;
+  const fab=document.getElementById('fab-btn');
+  fab.style.display=(id==='inventario'||id==='cotizador'||id==='finanzas')?'flex':'none';
+  if(id==='dashboard')renderDashboard();
+  if(id==='inventario')renderInventario();
+  if(id==='cotizador')renderCotItems();
+  if(id==='eventos')renderEventos();
+  if(id==='calendario')renderCalendar();
+  if(id==='finanzas')renderFinanzas();
+  if(id==='devoluciones')renderDevoluciones();
+}
+function fabAction(){
+  if(currentPage==='inventario'){isMobile()?openItemSheet():openItemModal();}
+  if(currentPage==='cotizador')addCotItem();
+  if(currentPage==='finanzas')openMovModal('ingreso');
 }
 
-function fabAction() {
-  if(currentPage==='inventario') openNewItem();
-  if(currentPage==='cotizador') addCotItem();
-}
+// ── TOAST ─────────────────────────────────────
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
-// ═══════════════════════════════════════════════
-//  TOAST & SHEETS
-// ═══════════════════════════════════════════════
-function showToast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2400);
-}
+// ── MODAL/SHEET HELPERS ───────────────────────
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModalOnOverlay(e,id){if(e.target===e.currentTarget)closeModal(id);}
 function openSheet(id){document.getElementById(id).classList.add('open');}
 function closeSheet(id){document.getElementById(id).classList.remove('open');}
 function closeSheetOnOverlay(e,id){if(e.target===e.currentTarget)closeSheet(id);}
 
-// ═══════════════════════════════════════════════
-//  DASHBOARD
-// ═══════════════════════════════════════════════
-function renderDashboard() {
-  const now = new Date();
-  const evThisMonth = eventos.filter(e=>{
-    if(!e.fecha) return false;
-    const d=new Date(e.fecha+'T12:00:00');
-    return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-  });
-  const totalCobrar = eventos.reduce((s,e)=>{
-    if(e.estatus!=='Cancelado'&&e.estatus!=='Pagado') return s+Math.max(0,(e.total||0)-(e.anticipo||0));
-    return s;
-  },0);
-  const ingresos = evThisMonth.reduce((s,e)=>s+(e.anticipo||0),0);
-  document.getElementById('stat-eventos').textContent = evThisMonth.length;
-  document.getElementById('stat-items').textContent = inventario.length;
-  document.getElementById('stat-cobrar').textContent = '$'+totalCobrar.toLocaleString('es-MX',{maximumFractionDigits:0});
-  document.getElementById('stat-ingresos').textContent = '$'+ingresos.toLocaleString('es-MX',{maximumFractionDigits:0});
+// ── DASHBOARD ─────────────────────────────────
+function renderDashboard(){
+  const now=new Date();
+  const evMes=eventos.filter(e=>{if(!e.fecha)return false;const d=new Date(e.fecha+'T12:00:00');return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  const mesKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const totalIng=ingresos.filter(i=>i.fecha&&i.fecha.startsWith(mesKey)).reduce((s,i)=>s+(parseFloat(i.monto)||0),0);
+  const totalEg=egresos.filter(e=>e.fecha&&e.fecha.startsWith(mesKey)).reduce((s,e)=>s+(parseFloat(e.monto)||0),0);
+  const util=totalIng-totalEg;
+  document.getElementById('stat-eventos').textContent=evMes.length;
+  document.getElementById('stat-items').textContent=inventario.length;
+  document.getElementById('stat-ingresos').textContent='$'+totalIng.toLocaleString('es-MX',{maximumFractionDigits:0});
+  const uEl=document.getElementById('stat-utilidad');
+  uEl.textContent='$'+util.toLocaleString('es-MX',{maximumFractionDigits:0});
+  uEl.className='stat-value '+(util>=0?'stat-positive':'stat-negative');
 
-  const upcoming = [...eventos].filter(e=>e.estatus!=='Cancelado').sort((a,b)=>new Date(a.fecha||'9999')-new Date(b.fecha||'9999')).slice(0,4);
-  const evList = document.getElementById('dash-eventos-list');
-  if(!upcoming.length) {
-    evList.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-calendar-off"></i><p>Sin eventos registrados aún</p></div></div>';
-  } else {
-    evList.innerHTML='<div class="card" style="padding:0 16px;">'+upcoming.map(e=>`
-      <div class="item-row" onclick="showEventoDetail('${e.id}')">
-        <div><div class="item-name">${e.cliente}</div><div class="item-meta">${e.tipo}${e.fecha?' · '+e.fecha:''}</div></div>
-        <span class="badge ${ST_MAP[e.estatus]||'badge-gray'}">${e.estatus}</span>
-      </div>`).join('')+'</div>';
-  }
+  const upcoming=[...eventos].filter(e=>e.estatus!=='Cancelado').sort((a,b)=>new Date(a.fecha||'9999')-new Date(b.fecha||'9999')).slice(0,4);
+  const evList=document.getElementById('dash-eventos-list');
+  evList.innerHTML=!upcoming.length?'<div class="empty-state" style="padding:24px;"><i class="ti ti-calendar-off"></i><p>Sin eventos</p></div>':
+    upcoming.map(e=>`<div class="item-row" onclick="showEventoDetail('${e.id}')"><div><div class="item-name">${e.cliente}</div><div class="item-meta">${e.tipo}${e.fecha?' · '+e.fecha:''}</div></div><span class="badge ${ST_MAP[e.estatus]||'badge-gray'}">${e.estatus}</span></div>`).join('');
 
-  const alertas = document.getElementById('dash-alertas');
-  const low = inventario.filter(i=>i.disponible<5&&i.disponible>=0);
-  if(!low.length) {
-    alertas.innerHTML='<div class="alert alert-info"><i class="ti ti-check" style="font-size:16px;flex-shrink:0;"></i><span>Sin alertas de inventario</span></div>';
-  } else {
-    alertas.innerHTML=low.map(i=>`<div class="alert alert-warn"><i class="ti ti-alert-triangle" style="font-size:16px;flex-shrink:0;"></i><span><strong>${i.nombre}</strong> — solo ${i.disponible} unidades disponibles</span></div>`).join('');
-  }
+  const allMov=[...ingresos.slice(0,5).map(i=>({...i,_tipo:'ing'})),...egresos.slice(0,5).map(e=>({...e,_tipo:'eg'}))].sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).slice(0,6);
+  const movEl=document.getElementById('dash-movimientos');
+  movEl.innerHTML=!allMov.length?'<div class="empty-state" style="padding:24px;"><i class="ti ti-receipt-off"></i><p>Sin movimientos</p></div>':
+    allMov.map(m=>`<div class="movimiento-row"><div class="mov-icon ${m._tipo}"><i class="ti ti-${m._tipo==='ing'?'arrow-down-left':'arrow-up-right'}"></i></div><div class="mov-info"><div class="mov-concepto">${m.concepto}</div><div class="mov-meta">${m.fecha||''}${m._tipo==='ing'&&m.tipo?' · '+m.tipo:m.categoria?' · '+m.categoria:''}</div></div><div class="mov-monto ${m._tipo}">${m._tipo==='ing'?'+':'-'}$${parseFloat(m.monto).toLocaleString('es-MX',{maximumFractionDigits:0})}</div></div>`).join('');
+
+  const alertas=document.getElementById('dash-alertas');
+  const low=inventario.filter(i=>i.disponible<5&&i.disponible>=0);
+  alertas.innerHTML=!low.length?'<div class="alert alert-success"><i class="ti ti-check" style="font-size:16px;flex-shrink:0;"></i><span>Sin alertas de inventario</span></div>':
+    low.map(i=>`<div class="alert alert-warn"><i class="ti ti-alert-triangle" style="font-size:16px;flex-shrink:0;"></i><span><strong>${i.nombre}</strong> — solo ${i.disponible} unidades disponibles</span></div>`).join('');
 }
 
-// ═══════════════════════════════════════════════
-//  INVENTARIO
-// ═══════════════════════════════════════════════
-function renderInventario() {
+// ── INVENTARIO ────────────────────────────────
+function renderInventario(){
   const q=(document.getElementById('inv-search')?.value||'').toLowerCase();
   const data=inventario.filter(i=>!q||i.nombre.toLowerCase().includes(q)||i.folio.toLowerCase().includes(q));
   const list=document.getElementById('inv-list');
-  if(!data.length){
-    list.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-package-off"></i><p>'+(q?'Sin resultados':'Inventario vacío — toca + para agregar')+'</p></div></div>';
-    return;
-  }
-  const cats={};
-  data.forEach(i=>{if(!cats[i.categoria])cats[i.categoria]=[];cats[i.categoria].push(i);});
+  if(!data.length){list.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-package-off"></i><p>'+(q?'Sin resultados':'Inventario vacío — toca + para agregar')+'</p></div></div>';return;}
+  const cats={};data.forEach(i=>{if(!cats[i.categoria])cats[i.categoria]=[];cats[i.categoria].push(i);});
   list.innerHTML=Object.keys(cats).map(cat=>`
     <div class="section-title">${cat}</div>
     <div class="card" style="padding:0 16px;">
-      ${cats[cat].map(i=>`
-        <div class="item-row" onclick="showItemDetail('${i.id}')">
-          <div style="flex:1;min-width:0;">
-            <div class="item-name">${i.nombre}</div>
-            <div class="item-meta"><span class="folio" style="font-size:11px;">${i.folio}</span>${i.descripcion?' · '+i.descripcion:''}</div>
-            <div class="progress-bar" style="width:80px;"><div class="progress-fill" style="width:${Math.min(100,Math.round(i.disponible/Math.max(i.stock,1)*100))}%"></div></div>
-          </div>
-          <div style="text-align:right;margin-left:10px;">
-            <div class="item-price">$${parseFloat(i.precio).toFixed(2)}</div>
-            <div style="font-size:11px;color:${i.disponible<5?'#9a2020':'var(--ma-purple-light)'};">${i.disponible}/${i.stock}</div>
-          </div>
-        </div>`).join('')}
+      ${cats[cat].map(i=>`<div class="item-row" onclick="showItemDetail('${i.id}')">
+        <div style="flex:1;min-width:0;">
+          <div class="item-name">${i.nombre}</div>
+          <div class="item-meta"><span class="folio" style="font-size:11px;">${i.folio}</span>${i.descripcion?' · '+i.descripcion:''}</div>
+          <div class="progress-bar" style="width:80px;"><div class="progress-fill" style="width:${Math.min(100,Math.round(i.disponible/Math.max(i.stock,1)*100))}%"></div></div>
+        </div>
+        <div style="text-align:right;margin-left:12px;">
+          <div style="font-size:15px;font-weight:500;">$${parseFloat(i.precio).toFixed(2)}</div>
+          <div style="font-size:11px;color:${i.disponible<5?'#9a2020':'var(--ma-purple-light)'};">${i.disponible}/${i.stock}</div>
+        </div>
+      </div>`).join('')}
     </div>`).join('');
 }
 
-function openNewItem() {
-  ['ni-nombre','ni-stock','ni-precio','ni-repo','ni-desc'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('ni-edit-id').value='';
-  document.getElementById('ni-edit-folio').value='';
-  document.getElementById('ni-cat').value='Mesas y sillas';
-  document.getElementById('sheet-item-title').textContent='Nuevo artículo';
-  document.getElementById('ni-btn-label').textContent='Agregar al inventario';
-  openSheet('sheet-item');
+function itemFormHTML(item){
+  return `
+    <div class="form-group"><label>Nombre</label><input type="text" id="ni-nombre" placeholder="Ej. Mantel redondo blanco" value="${item?.nombre||''}"></div>
+    <div class="form-group"><label>Categoría</label><select id="ni-cat">
+      ${['Mesas y sillas','Manteles','Decoración','Vajilla','Herramientas','Iluminación','Otro'].map(c=>`<option${item?.categoria===c?' selected':''}>${c}</option>`).join('')}
+    </select></div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Stock total</label><input type="number" id="ni-stock" placeholder="0" min="1" value="${item?.stock||''}"></div>
+      <div class="form-group"><label>Renta/u ($)</label><input type="number" id="ni-precio" placeholder="0.00" min="0" step="0.01" value="${item?.precio||''}"></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Reposición ($)</label><input type="number" id="ni-repo" placeholder="0.00" min="0" value="${item?.costo_reposicion||''}"></div>
+      <div class="form-group"><label>Descripción</label><input type="text" id="ni-desc" placeholder="Color, talla..." value="${item?.descripcion||''}"></div>
+    </div>
+    ${!item?'<div class="info-hint" style="margin-bottom:14px;"><i class="ti ti-sparkles" style="vertical-align:-2px;margin-right:4px;"></i>El folio se genera automáticamente</div>':''}
+    <input type="hidden" id="ni-edit-id" value="${item?.id||''}">
+    <input type="hidden" id="ni-edit-folio" value="${item?.folio||''}">
+    <button class="btn btn-primary btn-block" onclick="saveItem()" style="margin-bottom:8px;"><i class="ti ti-check"></i> ${item?'Guardar cambios':'Agregar al inventario'}</button>
+    ${item?'':'<button class="btn btn-block" onclick="'+(isMobile()?'closeSheet(\'sheet-item\')':'closeModal(\'modal-item\')')+'" >Cancelar</button>'}`;
 }
 
-async function saveItem() {
+function openItemModal(){document.getElementById('modal-item-title').textContent='Nuevo artículo';document.getElementById('item-form-content').innerHTML=itemFormHTML(null);openModal('modal-item');}
+function openItemSheet(){document.getElementById('sheet-item-title').textContent='Nuevo artículo';document.getElementById('item-form-content-m').innerHTML=itemFormHTML(null);openSheet('sheet-item');}
+
+async function saveItem(){
   const nombre=document.getElementById('ni-nombre').value.trim();
   const cat=document.getElementById('ni-cat').value;
   const stock=parseInt(document.getElementById('ni-stock').value)||0;
@@ -675,90 +746,68 @@ async function saveItem() {
   const repo=parseFloat(document.getElementById('ni-repo').value)||0;
   const desc=document.getElementById('ni-desc').value.trim();
   const editId=document.getElementById('ni-edit-id').value;
-  const editFolio=document.getElementById('ni-edit-folio').value;
   if(!nombre||!stock||!precio){showToast('Completa nombre, stock y precio');return;}
   setSyncStatus('syncing');
-  if(editId) {
-    const {error}=await sb.from('inventario').update({nombre,categoria:cat,stock,precio,costo_reposicion:repo,descripcion:desc}).eq('id',editId);
-    if(error){showToast('Error al guardar');setSyncStatus('online');return;}
+  if(editId){
+    await sb.from('inventario').update({nombre,categoria:cat,stock,precio,costo_reposicion:repo,descripcion:desc}).eq('id',editId);
     showToast('Artículo actualizado');
-  } else {
+  }else{
     const prefix=PREFIJOS[cat]||'GEN';
-    const existing=inventario.filter(i=>i.folio.startsWith(prefix+'-'));
-    const n=existing.length+1;
+    const n=inventario.filter(i=>i.folio.startsWith(prefix+'-')).length+1;
     const folio=prefix+'-'+String(n).padStart(3,'0');
-    const {error}=await sb.from('inventario').insert({folio,nombre,categoria:cat,stock,disponible:stock,precio,costo_reposicion:repo,descripcion:desc,estado:'Disponible'});
-    if(error){showToast('Error al guardar');setSyncStatus('online');return;}
+    await sb.from('inventario').insert({folio,nombre,categoria:cat,stock,disponible:stock,precio,costo_reposicion:repo,descripcion:desc,estado:'Disponible'});
     showToast('Artículo agregado: '+folio);
   }
   setSyncStatus('online');
   await loadInventario();
-  closeSheet('sheet-item');
+  isMobile()?closeSheet('sheet-item'):closeModal('modal-item');
+  isMobile()?closeSheet('sheet-item-detail'):closeModal('modal-item-detail');
   renderInventario();
 }
 
-function showItemDetail(id) {
-  const item=inventario.find(i=>i.id===id);
-  if(!item) return;
-  currentDetailId=id;
-  document.getElementById('detail-nombre').textContent=item.nombre;
-  document.getElementById('detail-folio').textContent=item.folio;
-  document.getElementById('detail-cat').textContent=item.categoria;
-  document.getElementById('detail-stock').textContent=item.stock;
-  document.getElementById('detail-disp').textContent=item.disponible;
-  document.getElementById('detail-precio').textContent='$'+parseFloat(item.precio).toFixed(2);
-  document.getElementById('detail-repo').textContent=item.costo_reposicion?'$'+parseFloat(item.costo_reposicion).toFixed(2):'—';
-  const dr=document.getElementById('detail-desc-row');
-  dr.style.display=item.descripcion?'block':'none';
-  dr.textContent=item.descripcion||'';
-  openSheet('sheet-item-detail');
+function showItemDetail(id){
+  currentItemId=id;
+  const item=inventario.find(i=>i.id===id);if(!item)return;
+  const html=`
+    <div style="margin-bottom:12px;"><span class="folio">${item.folio}</span><span class="tag" style="margin-left:6px;">${item.categoria}</span></div>
+    <div class="resumen-box" style="margin-bottom:14px;">
+      <div class="resumen-row"><span>Stock total</span><span>${item.stock}</span></div>
+      <div class="resumen-row"><span>Disponible</span><span style="color:${item.disponible<5?'#9a2020':'inherit'}">${item.disponible}</span></div>
+      <div class="resumen-row"><span>Costo renta/u</span><span>$${parseFloat(item.precio).toFixed(2)}</span></div>
+      <div class="resumen-row"><span>Costo reposición</span><span>${item.costo_reposicion?'$'+parseFloat(item.costo_reposicion).toFixed(2):'—'}</span></div>
+    </div>
+    ${item.descripcion?`<div class="info-hint" style="margin-bottom:14px;">${item.descripcion}</div>`:''}
+    <button class="btn btn-primary btn-block" onclick="editItem('${id}')" style="margin-bottom:8px;"><i class="ti ti-edit"></i> Editar</button>
+    <button class="btn btn-block btn-danger-soft" onclick="deleteItem('${id}')"><i class="ti ti-trash"></i> Eliminar</button>`;
+  if(isMobile()){document.getElementById('d-nombre-m').textContent=item.nombre;document.getElementById('item-detail-content-m').innerHTML=html;openSheet('sheet-item-detail');}
+  else{document.getElementById('d-nombre-d').textContent=item.nombre;document.getElementById('item-detail-content-d').innerHTML=html;openModal('modal-item-detail');}
 }
-
-function editItemFromDetail() {
-  const item=inventario.find(i=>i.id===currentDetailId);
-  if(!item) return;
-  closeSheet('sheet-item-detail');
-  document.getElementById('ni-nombre').value=item.nombre;
-  document.getElementById('ni-cat').value=item.categoria;
-  document.getElementById('ni-stock').value=item.stock;
-  document.getElementById('ni-precio').value=item.precio;
-  document.getElementById('ni-repo').value=item.costo_reposicion||'';
-  document.getElementById('ni-desc').value=item.descripcion||'';
-  document.getElementById('ni-edit-id').value=item.id;
-  document.getElementById('ni-edit-folio').value=item.folio;
-  document.getElementById('sheet-item-title').textContent='Editar artículo';
-  document.getElementById('ni-btn-label').textContent='Guardar cambios';
-  openSheet('sheet-item');
+function editItem(id){
+  const item=inventario.find(i=>i.id===id);if(!item)return;
+  isMobile()?closeSheet('sheet-item-detail'):closeModal('modal-item-detail');
+  if(isMobile()){document.getElementById('sheet-item-title').textContent='Editar artículo';document.getElementById('item-form-content-m').innerHTML=itemFormHTML(item);openSheet('sheet-item');}
+  else{document.getElementById('modal-item-title').textContent='Editar artículo';document.getElementById('item-form-content').innerHTML=itemFormHTML(item);openModal('modal-item');}
 }
-
-async function deleteItemFromDetail() {
-  if(!confirm('¿Eliminar este artículo?')) return;
+async function deleteItem(id){
+  if(!confirm('¿Eliminar este artículo?'))return;
   setSyncStatus('syncing');
-  await sb.from('inventario').delete().eq('id',currentDetailId);
-  await loadInventario();
-  setSyncStatus('online');
-  closeSheet('sheet-item-detail');
-  renderInventario();
-  showToast('Artículo eliminado');
+  await sb.from('inventario').delete().eq('id',id);
+  await loadInventario();setSyncStatus('online');
+  isMobile()?closeSheet('sheet-item-detail'):closeModal('modal-item-detail');
+  renderInventario();showToast('Artículo eliminado');
 }
 
-// ═══════════════════════════════════════════════
-//  COTIZADOR
-// ═══════════════════════════════════════════════
+// ── COTIZADOR ─────────────────────────────────
 function addCotItem(){cotItems.push({folio:'',nombre:'',cantidad:1,precio:0});renderCotItems();}
-
-function renderCotItems() {
+function renderCotItems(){
   const cont=document.getElementById('cot-items-list');
-  if(!cotItems.length){
-    cont.innerHTML='<div class="empty-state" style="padding:20px;"><i class="ti ti-file-plus"></i><p>Toca + para agregar artículos</p></div>';
-    calcTotales();return;
-  }
+  if(!cotItems.length){cont.innerHTML='<div class="empty-state" style="padding:20px;"><i class="ti ti-file-plus"></i><p>Agrega artículos del inventario</p></div>';calcTotales();return;}
   cont.innerHTML=cotItems.map((it,idx)=>`
     <div class="cot-item">
       <div class="cot-item-top">
         <input class="cot-folio-input" type="text" placeholder="Folio" value="${it.folio}" oninput="onFolioChange(${idx},this.value)">
         <span class="cot-item-name">${it.nombre||'<span style="color:var(--ma-purple-light);font-weight:400;">Sin coincidencia</span>'}</span>
-        <button onclick="removeCotItem(${idx})" class="btn btn-icon btn-danger-soft btn-sm" style="padding:6px 8px;"><i class="ti ti-x"></i></button>
+        <button onclick="removeCotItem(${idx})" class="btn btn-icon btn-danger-soft btn-sm" style="padding:6px;"><i class="ti ti-x"></i></button>
       </div>
       <div class="cot-item-bottom">
         <input class="cot-qty" type="number" min="1" value="${it.cantidad}" oninput="onCantChange(${idx},this.value)">
@@ -768,31 +817,16 @@ function renderCotItems() {
     </div>`).join('');
   calcTotales();
 }
-
-function onFolioChange(idx,val){
-  cotItems[idx].folio=val.toUpperCase();
-  const found=inventario.find(i=>i.folio===val.toUpperCase());
-  cotItems[idx].nombre=found?found.nombre:'';
-  cotItems[idx].precio=found?parseFloat(found.precio):0;
-  renderCotItems();
-}
+function onFolioChange(idx,val){cotItems[idx].folio=val.toUpperCase();const f=inventario.find(i=>i.folio===val.toUpperCase());cotItems[idx].nombre=f?f.nombre:'';cotItems[idx].precio=f?parseFloat(f.precio):0;renderCotItems();}
 function onCantChange(idx,val){cotItems[idx].cantidad=parseInt(val)||1;calcTotales();}
 function removeCotItem(idx){cotItems.splice(idx,1);renderCotItems();}
-
-function toggleMO(){
-  const t=document.getElementById('mo-tipo').value;
-  document.getElementById('mo-fijo-row').style.display=t==='fijo'?'block':'none';
-  document.getElementById('mo-horas-row').style.display=t==='horas'?'block':'none';
-  calcTotales();
-}
-
+function toggleMO(){const t=document.getElementById('mo-tipo').value;document.getElementById('mo-fijo-row').style.display=t==='fijo'?'block':'none';document.getElementById('mo-horas-row').style.display=t==='horas'?'grid':'none';calcTotales();}
 function calcTotales(){
   const renta=cotItems.reduce((s,i)=>s+i.precio*i.cantidad,0);
-  let mo=0;
-  const t=document.getElementById('mo-tipo')?.value;
-  if(t==='fijo') mo=parseFloat(document.getElementById('mo-val')?.value)||0;
+  let mo=0;const t=document.getElementById('mo-tipo')?.value;
+  if(t==='fijo')mo=parseFloat(document.getElementById('mo-val')?.value)||0;
   else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
-  const sub=renta+mo; const iva=sub*0.16; const total=sub+iva;
+  const sub=renta+mo;const iva=sub*0.16;const total=sub+iva;
   const ant=parseFloat(document.getElementById('cot-anticipo')?.value)||0;
   document.getElementById('r-renta').textContent='$'+renta.toFixed(2);
   document.getElementById('r-mo').textContent='$'+mo.toFixed(2);
@@ -800,17 +834,15 @@ function calcTotales(){
   document.getElementById('r-total').textContent='$'+total.toFixed(2);
   document.getElementById('r-saldo').textContent='$'+Math.max(0,total-ant).toFixed(2);
 }
-
-async function guardarCotizacion() {
+async function guardarCotizacion(){
   const cliente=document.getElementById('cot-cliente')?.value.trim();
   if(!cliente){showToast('Ingresa el nombre del cliente');return;}
   if(!cotItems.length){showToast('Agrega al menos un artículo');return;}
   const tipo=document.getElementById('cot-tipo').value;
   const fecha=document.getElementById('cot-fecha').value||null;
   const lugar=document.getElementById('cot-lugar').value.trim();
-  let mo=0;
-  const moTipo=document.getElementById('mo-tipo').value;
-  if(moTipo==='fijo') mo=parseFloat(document.getElementById('mo-val')?.value)||0;
+  let mo=0;const moTipo=document.getElementById('mo-tipo').value;
+  if(moTipo==='fijo')mo=parseFloat(document.getElementById('mo-val')?.value)||0;
   else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
   const renta=cotItems.reduce((s,i)=>s+i.precio*i.cantidad,0);
   const total=parseFloat(((renta+mo)*1.16).toFixed(2));
@@ -818,36 +850,29 @@ async function guardarCotizacion() {
   setSyncStatus('syncing');
   const num=await getNextEvtNum();
   const folio='EVT-'+new Date().getFullYear()+'-'+String(num).padStart(3,'0');
-  const {error}=await sb.from('eventos').insert({
-    folio,cliente,tipo,fecha,lugar,total,anticipo,mano_obra:mo,
-    items:JSON.stringify(cotItems),
-    estatus:anticipo>0?'Anticipo':'Cotizado'
-  });
-  if(error){showToast('Error al guardar');setSyncStatus('online');return;}
+  await sb.from('eventos').insert({folio,cliente,tipo,fecha,lugar,total,anticipo,mano_obra:mo,items:JSON.stringify(cotItems),estatus:anticipo>0?'Anticipo':'Cotizado'});
+  if(anticipo>0){
+    await sb.from('ingresos').insert({fecha:fecha||new Date().toISOString().split('T')[0],concepto:'Anticipo — '+cliente,tipo:'Anticipo',monto:anticipo,evento_folio:folio,cliente});
+  }
   cotItems=[];
-  ['cot-cliente','cot-fecha','cot-lugar','mo-val','cot-anticipo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  await loadEventos();
+  ['cot-cliente','cot-fecha','cot-lugar','mo-val','cot-anticipo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  await Promise.all([loadEventos(),loadIngresos()]);
   setSyncStatus('online');
   showToast('Evento guardado: '+folio);
-  showPage('eventos',document.getElementById('tab-eventos'));
+  showPage('eventos',null);
 }
 
-// ═══════════════════════════════════════════════
-//  EVENTOS
-// ═══════════════════════════════════════════════
-function renderEventos() {
+// ── EVENTOS ───────────────────────────────────
+function renderEventos(){
   const list=document.getElementById('eventos-list');
-  if(!eventos.length){
-    list.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-calendar-off"></i><p>Sin eventos — crea uno desde el cotizador</p></div></div>';
-    return;
-  }
-  const sorted=[...eventos].sort((a,b)=>new Date(a.fecha||'9999')-new Date(b.fecha||'9999'));
-  list.innerHTML=sorted.map(e=>{
+  const filter=document.getElementById('ev-filter')?.value||'';
+  const data=[...eventos].filter(e=>!filter||e.estatus===filter).sort((a,b)=>new Date(a.fecha||'9999')-new Date(b.fecha||'9999'));
+  if(!data.length){list.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-calendar-off"></i><p>Sin eventos</p></div></div>';return;}
+  list.innerHTML=data.map(e=>{
     const saldo=Math.max(0,(e.total||0)-(e.anticipo||0));
     return `<div class="card" onclick="showEventoDetail('${e.id}')" style="cursor:pointer;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-        <div><div style="font-size:16px;font-weight:500;">${e.cliente}</div>
-        <div style="font-size:12px;color:var(--ma-purple-light);margin-top:2px;">${e.tipo}${e.fecha?' · '+e.fecha:''}</div></div>
+        <div><div style="font-size:16px;font-weight:500;">${e.cliente}</div><div style="font-size:12px;color:var(--ma-purple-light);margin-top:2px;">${e.tipo}${e.fecha?' · '+e.fecha:''}</div></div>
         <span class="badge ${ST_MAP[e.estatus]||'badge-gray'}">${e.estatus}</span>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:13px;">
@@ -858,175 +883,269 @@ function renderEventos() {
     </div>`;
   }).join('');
 }
-
-function showEventoDetail(id) {
-  const ev=eventos.find(e=>e.id===id);
-  if(!ev) return;
+function showEventoDetail(id){
   currentEventoId=id;
-  document.getElementById('ev-detail-cliente').textContent=ev.cliente;
-  document.getElementById('ev-detail-folio').textContent=ev.folio;
-  document.getElementById('ev-detail-tipo').textContent=ev.tipo;
-  const badge=document.getElementById('ev-detail-badge');
-  badge.textContent=ev.estatus; badge.className='badge '+(ST_MAP[ev.estatus]||'badge-gray');
-  document.getElementById('ev-detail-fecha').textContent=ev.fecha||'—';
-  document.getElementById('ev-detail-lugar').textContent=ev.lugar||'—';
-  document.getElementById('ev-detail-total').textContent='$'+(ev.total||0).toFixed(2);
-  document.getElementById('ev-detail-anticipo').textContent='$'+(ev.anticipo||0).toFixed(2);
-  document.getElementById('ev-detail-saldo').textContent='$'+Math.max(0,(ev.total||0)-(ev.anticipo||0)).toFixed(2);
-  document.getElementById('ev-estatus-sel').value=ev.estatus;
-  let items=[];
-  try{ items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[]; }catch(e){}
-  const itemsEl=document.getElementById('ev-detail-items');
-  itemsEl.innerHTML=items.map(i=>`
-    <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:0.5px solid rgba(107,74,142,0.1);">
-      <span>${i.nombre||i.folio} × ${i.cantidad}</span>
-      <span style="color:var(--ma-purple-mid);">$${(i.precio*i.cantidad).toFixed(2)}</span>
-    </div>`).join('')||'<div style="font-size:13px;color:var(--ma-purple-light);">Sin artículos registrados</div>';
-  openSheet('sheet-evento-detail');
+  const ev=eventos.find(e=>e.id===id);if(!ev)return;
+  let items=[];try{items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[];}catch(e){}
+  const saldo=Math.max(0,(ev.total||0)-(ev.anticipo||0));
+  const html=`
+    <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span class="folio">${ev.folio}</span><span class="tag">${ev.tipo}</span>
+      <span class="badge ${ST_MAP[ev.estatus]||'badge-gray'}">${ev.estatus}</span>
+    </div>
+    <div class="resumen-box" style="margin-bottom:14px;">
+      <div class="resumen-row"><span>Fecha</span><span>${ev.fecha||'—'}</span></div>
+      <div class="resumen-row"><span>Lugar</span><span>${ev.lugar||'—'}</span></div>
+      <div class="resumen-row"><span>Total</span><span>$${(ev.total||0).toFixed(2)}</span></div>
+      <div class="resumen-row"><span>Anticipo pagado</span><span>$${(ev.anticipo||0).toFixed(2)}</span></div>
+      <div class="resumen-total"><span>Saldo pendiente</span><span>$${saldo.toFixed(2)}</span></div>
+    </div>
+    ${saldo>0?`<button class="btn btn-success btn-block" onclick="registrarSaldo('${id}')" style="margin-bottom:10px;"><i class="ti ti-cash"></i> Registrar pago de saldo ($${saldo.toFixed(2)})</button>`:''}
+    <div style="margin-bottom:14px;">
+      <div style="font-size:12px;color:var(--ma-purple-mid);font-weight:500;margin-bottom:8px;">Artículos rentados</div>
+      ${items.map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:0.5px solid rgba(107,74,142,0.1);"><span>${i.nombre||i.folio} × ${i.cantidad}</span><span style="color:var(--ma-purple-mid);">$${(i.precio*i.cantidad).toFixed(2)}</span></div>`).join('')||'<div style="font-size:13px;color:var(--ma-purple-light);">Sin artículos</div>'}
+    </div>
+    <div class="form-group"><label>Cambiar estatus</label>
+      <select id="ev-estatus-sel-${id}">
+        ${['Cotizado','Anticipo','Confirmado','Pagado','Cancelado'].map(s=>`<option${ev.estatus===s?' selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="updateEventoEstatus('${id}')" style="margin-bottom:8px;"><i class="ti ti-check"></i> Actualizar estatus</button>
+    <button class="btn btn-block btn-danger-soft" onclick="deleteEvento('${id}')"><i class="ti ti-trash"></i> Eliminar evento</button>`;
+  if(isMobile()){document.getElementById('ev-d-cliente-m').textContent=ev.cliente;document.getElementById('ev-detail-content-m').innerHTML=html;openSheet('sheet-evento-detail');}
+  else{document.getElementById('ev-d-cliente-d').textContent=ev.cliente;document.getElementById('ev-detail-content-d').innerHTML=html;openModal('modal-evento-detail');}
 }
-
-async function updateEventoEstatus() {
-  const ev=eventos.find(e=>e.id===currentEventoId);
-  if(!ev) return;
-  const nuevoEstatus=document.getElementById('ev-estatus-sel').value;
+async function registrarSaldo(id){
+  const ev=eventos.find(e=>e.id===id);if(!ev)return;
+  const saldo=Math.max(0,(ev.total||0)-(ev.anticipo||0));
+  if(!confirm('¿Registrar pago de saldo $'+saldo.toFixed(2)+' como ingreso?'))return;
   setSyncStatus('syncing');
-  await sb.from('eventos').update({estatus:nuevoEstatus}).eq('id',currentEventoId);
-  await loadEventos();
+  await sb.from('ingresos').insert({fecha:new Date().toISOString().split('T')[0],concepto:'Saldo — '+ev.cliente,tipo:'Saldo',monto:saldo,evento_folio:ev.folio,cliente:ev.cliente});
+  await sb.from('eventos').update({estatus:'Pagado',anticipo:ev.total}).eq('id',id);
+  await Promise.all([loadEventos(),loadIngresos()]);
   setSyncStatus('online');
-  closeSheet('sheet-evento-detail');
-  renderEventos();
-  showToast('Estatus actualizado');
+  isMobile()?closeSheet('sheet-evento-detail'):closeModal('modal-evento-detail');
+  renderEventos();showToast('Saldo registrado como ingreso');
 }
-
-async function deleteEvento() {
-  if(!confirm('¿Eliminar este evento?')) return;
+async function updateEventoEstatus(id){
+  const nuevoEstatus=document.getElementById('ev-estatus-sel-'+id)?.value;if(!nuevoEstatus)return;
   setSyncStatus('syncing');
-  await sb.from('eventos').delete().eq('id',currentEventoId);
-  await loadEventos();
-  setSyncStatus('online');
-  closeSheet('sheet-evento-detail');
-  renderEventos();
-  showToast('Evento eliminado');
+  await sb.from('eventos').update({estatus:nuevoEstatus}).eq('id',id);
+  await loadEventos();setSyncStatus('online');
+  isMobile()?closeSheet('sheet-evento-detail'):closeModal('modal-evento-detail');
+  renderEventos();showToast('Estatus actualizado');
+}
+async function deleteEvento(id){
+  if(!confirm('¿Eliminar este evento?'))return;
+  setSyncStatus('syncing');
+  await sb.from('eventos').delete().eq('id',id);
+  await loadEventos();setSyncStatus('online');
+  isMobile()?closeSheet('sheet-evento-detail'):closeModal('modal-evento-detail');
+  renderEventos();showToast('Evento eliminado');
 }
 
-// ═══════════════════════════════════════════════
-//  CALENDARIO
-// ═══════════════════════════════════════════════
-function renderCalendar() {
-  const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
+// ── CALENDARIO ────────────────────────────────
+function renderCalendar(){
+  document.getElementById('cal-title').textContent=MONTHS[calMonth]+' '+calYear;
   const days=['D','L','M','M','J','V','S'];
   const first=new Date(calYear,calMonth,1).getDay();
   const total=new Date(calYear,calMonth+1,0).getDate();
   const today=new Date();
   let html=days.map(d=>`<div class="cal-day-head">${d}</div>`).join('');
-  for(let i=0;i<first;i++){
-    const pd=new Date(calYear,calMonth,-first+i+1).getDate();
-    html+=`<div class="cal-day other-month"><div class="cal-day-num">${pd}</div></div>`;
-  }
+  for(let i=0;i<first;i++){const pd=new Date(calYear,calMonth,-first+i+1).getDate();html+=`<div class="cal-day other-month"><div class="cal-day-num">${pd}</div></div>`;}
   for(let d=1;d<=total;d++){
     const isToday=calYear===today.getFullYear()&&calMonth===today.getMonth()&&d===today.getDate();
-    const dayEvs=eventos.filter(e=>{
-      if(!e.fecha||e.estatus==='Cancelado') return false;
-      const ed=new Date(e.fecha+'T12:00:00');
-      return ed.getDate()===d&&ed.getMonth()===calMonth&&ed.getFullYear()===calYear;
-    });
-    const dots=dayEvs.map(e=>{
-      let cls='dot-boda';
-      if(e.tipo==='Baby shower') cls='dot-baby';
-      else if(e.tipo==='XV Años'||e.tipo==='Cumpleaños') cls='dot-cumple';
-      return `<div class="cal-dot ${cls}"></div>`;
-    }).join('');
+    const dayEvs=eventos.filter(e=>{if(!e.fecha||e.estatus==='Cancelado')return false;const ed=new Date(e.fecha+'T12:00:00');return ed.getDate()===d&&ed.getMonth()===calMonth&&ed.getFullYear()===calYear;});
+    const dots=dayEvs.map(e=>{let cls='dot-boda';if(e.tipo==='Baby shower')cls='dot-baby';else if(e.tipo==='XV Años'||e.tipo==='Cumpleaños')cls='dot-cumple';return `<div class="cal-dot ${cls}"></div>`;}).join('');
     html+=`<div class="cal-day${isToday?' today':''}${dayEvs.length?' has-event':''}"><div class="cal-day-num">${d}</div>${dots}</div>`;
   }
   document.getElementById('cal-grid').innerHTML=html;
+  const monthEvs=[...eventos].filter(e=>{if(!e.fecha||e.estatus==='Cancelado')return false;const d=new Date(e.fecha+'T12:00:00');return d.getMonth()===calMonth&&d.getFullYear()===calYear;}).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+  document.getElementById('cal-events-list').innerHTML=!monthEvs.length?'<div class="card" style="text-align:center;color:var(--ma-purple-light);font-size:13px;padding:20px;">Sin eventos este mes</div>':
+    monthEvs.map(e=>`<div class="card" style="padding:12px 16px;cursor:pointer;" onclick="showEventoDetail('${e.id}')"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">${e.cliente}</div><div style="font-size:12px;color:var(--ma-purple-light);">${e.tipo} · ${e.fecha}</div></div><span class="badge ${ST_MAP[e.estatus]||'badge-gray'}">${e.estatus}</span></div></div>`).join('');
+}
+function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 
-  const monthEvs=[...eventos].filter(e=>{
-    if(!e.fecha||e.estatus==='Cancelado') return false;
-    const d=new Date(e.fecha+'T12:00:00');
-    return d.getMonth()===calMonth&&d.getFullYear()===calYear;
-  }).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
-
-  const el=document.getElementById('cal-events-list');
-  el.innerHTML=!monthEvs.length
-    ?'<div class="card" style="text-align:center;color:var(--ma-purple-light);font-size:13px;padding:20px;">Sin eventos este mes</div>'
-    :monthEvs.map(e=>`
-      <div class="card" style="padding:12px 16px;cursor:pointer;" onclick="showEventoDetail('${e.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div><div style="font-size:14px;font-weight:500;">${e.cliente}</div>
-          <div style="font-size:12px;color:var(--ma-purple-light);">${e.tipo} · ${e.fecha}</div></div>
-          <span class="badge ${ST_MAP[e.estatus]||'badge-gray'}">${e.estatus}</span>
-        </div>
-      </div>`).join('');
+// ── FINANZAS ──────────────────────────────────
+function populateFinMes(){
+  const sel=document.getElementById('fin-mes');
+  const now=new Date();
+  const options=[];
+  for(let i=0;i<12;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const label=MONTHS[d.getMonth()]+' '+d.getFullYear();
+    options.push(`<option value="${key}"${i===0?' selected':''}>${label}</option>`);
+  }
+  sel.innerHTML=options.join('');
 }
 
-function changeMonth(dir){
-  calMonth+=dir;
-  if(calMonth>11){calMonth=0;calYear++;}
-  if(calMonth<0){calMonth=11;calYear--;}
-  renderCalendar();
+function renderFinanzas(){
+  const mes=document.getElementById('fin-mes')?.value||'';
+  const mesIng=ingresos.filter(i=>i.fecha&&i.fecha.startsWith(mes));
+  const mesEg=egresos.filter(e=>e.fecha&&e.fecha.startsWith(mes));
+  const totalIng=mesIng.reduce((s,i)=>s+(parseFloat(i.monto)||0),0);
+  const totalEg=mesEg.reduce((s,e)=>s+(parseFloat(e.monto)||0),0);
+  const util=totalIng-totalEg;
+  const margen=totalIng>0?((util/totalIng)*100):0;
+
+  document.getElementById('fin-total-ing').textContent='$'+totalIng.toLocaleString('es-MX',{maximumFractionDigits:0});
+  document.getElementById('fin-total-eg').textContent='$'+totalEg.toLocaleString('es-MX',{maximumFractionDigits:0});
+  const uEl=document.getElementById('fin-utilidad');
+  uEl.textContent='$'+util.toLocaleString('es-MX',{maximumFractionDigits:0});
+  uEl.className='stat-value '+(util>=0?'stat-positive':'stat-negative');
+  document.getElementById('fin-margen').textContent=margen.toFixed(1)+'%';
+
+  // Ingresos list
+  const ingList=document.getElementById('fin-ing-list');
+  ingList.innerHTML=!mesIng.length?'<div class="empty-state" style="padding:24px;"><i class="ti ti-receipt-off"></i><p>Sin ingresos</p></div>':
+    mesIng.map(i=>`<div class="movimiento-row">
+      <div class="mov-icon ing"><i class="ti ti-arrow-down-left"></i></div>
+      <div class="mov-info"><div class="mov-concepto">${i.concepto}</div><div class="mov-meta">${i.fecha||''}${i.tipo?' · '+i.tipo:''}${i.cliente?' · '+i.cliente:''}</div></div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="mov-monto ing">+$${parseFloat(i.monto).toLocaleString('es-MX',{maximumFractionDigits:0})}</div>
+        <button class="btn btn-icon btn-danger-soft btn-sm" style="padding:4px 5px;" onclick="deleteMov('ingreso','${i.id}')"><i class="ti ti-x" style="font-size:13px;"></i></button>
+      </div>
+    </div>`).join('');
+
+  // Egresos list
+  const egList=document.getElementById('fin-eg-list');
+  egList.innerHTML=!mesEg.length?'<div class="empty-state" style="padding:24px;"><i class="ti ti-receipt-off"></i><p>Sin egresos</p></div>':
+    mesEg.map(e=>`<div class="movimiento-row">
+      <div class="mov-icon eg"><i class="ti ti-arrow-up-right"></i></div>
+      <div class="mov-info"><div class="mov-concepto">${e.concepto}</div><div class="mov-meta">${e.fecha||''}${e.categoria?' · '+e.categoria:''}${e.evento_folio?' · '+e.evento_folio:''}</div></div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="mov-monto eg">-$${parseFloat(e.monto).toLocaleString('es-MX',{maximumFractionDigits:0})}</div>
+        <button class="btn btn-icon btn-danger-soft btn-sm" style="padding:4px 5px;" onclick="deleteMov('egreso','${e.id}')"><i class="ti ti-x" style="font-size:13px;"></i></button>
+      </div>
+    </div>`).join('');
+
+  // Categorías egresos
+  const cats={};
+  mesEg.forEach(e=>{if(!cats[e.categoria])cats[e.categoria]=0;cats[e.categoria]+=parseFloat(e.monto)||0;});
+  const maxCat=Math.max(...Object.values(cats),1);
+  const finCats=document.getElementById('fin-cats');
+  finCats.innerHTML=!Object.keys(cats).length?'<div class="empty-state" style="padding:20px;"><i class="ti ti-chart-bar-off"></i><p>Sin egresos este mes</p></div>':
+    `<div class="fin-chart">${Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([cat,val])=>`
+      <div class="fin-bar-row">
+        <div class="fin-bar-label">${cat}</div>
+        <div class="fin-bar-track"><div class="fin-bar-fill-eg" style="width:${Math.round(val/maxCat*100)}%"></div></div>
+        <div class="fin-bar-val">$${val.toLocaleString('es-MX',{maximumFractionDigits:0})}</div>
+      </div>`).join('')}</div>`;
 }
 
-// ═══════════════════════════════════════════════
-//  DEVOLUCIONES
-// ═══════════════════════════════════════════════
-function renderDevoluciones() {
+function movFormHTML(tipo){
+  const isIng=tipo==='ingreso';
+  return `
+    <div class="form-group"><label>Concepto</label><input type="text" id="mov-concepto" placeholder="${isIng?'Anticipo boda García...':'Compra manteles nuevos...'}"></div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Monto ($)</label><input type="number" id="mov-monto" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group"><label>Fecha</label><input type="date" id="mov-fecha" value="${new Date().toISOString().split('T')[0]}"></div>
+    </div>
+    ${isIng?`
+    <div class="form-row-2">
+      <div class="form-group"><label>Tipo de ingreso</label>
+        <select id="mov-tipo-ing"><option>Anticipo</option><option>Saldo</option><option>Otro</option></select>
+      </div>
+      <div class="form-group"><label>Cliente</label><input type="text" id="mov-cliente" placeholder="Nombre..."></div>
+    </div>
+    <div class="form-group"><label>Folio evento (opcional)</label><input type="text" id="mov-folio" placeholder="EVT-2026-001" style="font-family:monospace;text-transform:uppercase;"></div>`
+    :`
+    <div class="form-group"><label>Categoría</label>
+      <select id="mov-cat-eg">
+        ${['Compra artículo','Gasolina','Decoración','Papelería','Comida','Herramientas','Otro'].map(c=>`<option>${c}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Folio evento (opcional)</label><input type="text" id="mov-folio-eg" placeholder="EVT-2026-001" style="font-family:monospace;text-transform:uppercase;"></div>`}
+    <div class="form-group"><label>Notas</label><input type="text" id="mov-notas" placeholder="Opcional..."></div>
+    <button class="btn ${isIng?'btn-success':'btn-danger'} btn-block" onclick="saveMov('${tipo}')" style="margin-bottom:8px;margin-top:4px;">
+      <i class="ti ti-check"></i> Registrar ${isIng?'ingreso':'egreso'}
+    </button>`;
+}
+
+function openMovModal(tipo){
+  currentMovTipo=tipo;
+  const title=(tipo==='ingreso'?'Nuevo ingreso':'Nuevo egreso');
+  if(isMobile()){document.getElementById('sheet-mov-title').textContent=title;document.getElementById('mov-form-m').innerHTML=movFormHTML(tipo);openSheet('sheet-mov');}
+  else{document.getElementById('modal-mov-title').textContent=title;document.getElementById('mov-form-d').innerHTML=movFormHTML(tipo);openModal('modal-mov');}
+}
+
+async function saveMov(tipo){
+  const concepto=document.getElementById('mov-concepto')?.value.trim();
+  const monto=parseFloat(document.getElementById('mov-monto')?.value)||0;
+  const fecha=document.getElementById('mov-fecha')?.value||new Date().toISOString().split('T')[0];
+  if(!concepto||!monto){showToast('Completa concepto y monto');return;}
+  setSyncStatus('syncing');
+  if(tipo==='ingreso'){
+    const tipoIng=document.getElementById('mov-tipo-ing')?.value||'Otro';
+    const cliente=document.getElementById('mov-cliente')?.value.trim()||'';
+    const folio=document.getElementById('mov-folio')?.value.trim().toUpperCase()||'';
+    const notas=document.getElementById('mov-notas')?.value.trim()||'';
+    await sb.from('ingresos').insert({concepto,monto,fecha,tipo:tipoIng,cliente,evento_folio:folio,notas});
+    showToast('Ingreso registrado');
+  }else{
+    const cat=document.getElementById('mov-cat-eg')?.value||'Otro';
+    const folio=document.getElementById('mov-folio-eg')?.value.trim().toUpperCase()||'';
+    const notas=document.getElementById('mov-notas')?.value.trim()||'';
+    await sb.from('egresos').insert({concepto,monto,fecha,categoria:cat,evento_folio:folio,notas});
+    showToast('Egreso registrado');
+  }
+  await(tipo==='ingreso'?loadIngresos():loadEgresos());
+  setSyncStatus('online');
+  isMobile()?closeSheet('sheet-mov'):closeModal('modal-mov');
+  renderFinanzas();
+}
+
+async function deleteMov(tipo,id){
+  if(!confirm('¿Eliminar este movimiento?'))return;
+  setSyncStatus('syncing');
+  await sb.from(tipo==='ingreso'?'ingresos':'egresos').delete().eq('id',id);
+  await(tipo==='ingreso'?loadIngresos():loadEgresos());
+  setSyncStatus('online');
+  renderFinanzas();showToast('Movimiento eliminado');
+}
+
+function imprimirReporte(){
+  const mes=document.getElementById('fin-mes')?.value||'';
+  const [yr,mo]=mes.split('-');
+  document.getElementById('print-periodo').textContent='Reporte de '+MONTHS[parseInt(mo)-1]+' '+yr;
+  document.getElementById('print-fecha').textContent=new Date().toLocaleDateString('es-MX');
+  window.print();
+}
+
+// ── DEVOLUCIONES ──────────────────────────────
+function renderDevoluciones(){
   const sel=document.getElementById('dev-evento-sel');
-  const activeEvs=eventos.filter(e=>e.estatus!=='Cancelado'&&e.estatus!=='Cerrado');
-  sel.innerHTML='<option value="">-- Selecciona --</option>'+
-    activeEvs.map(e=>`<option value="${e.id}">${e.cliente} — ${e.fecha||'Sin fecha'} (${e.folio})</option>`).join('');
+  const active=eventos.filter(e=>e.estatus!=='Cancelado'&&e.estatus!=='Cerrado');
+  sel.innerHTML='<option value="">-- Selecciona --</option>'+active.map(e=>`<option value="${e.id}">${e.cliente} — ${e.fecha||'Sin fecha'} (${e.folio})</option>`).join('');
   document.getElementById('dev-items-container').innerHTML='';
   document.getElementById('dev-btn-container').innerHTML='';
 }
-
-function loadDevolucion() {
+function loadDevolucion(){
   const id=document.getElementById('dev-evento-sel').value;
   const cont=document.getElementById('dev-items-container');
   const btnCont=document.getElementById('dev-btn-container');
   if(!id){cont.innerHTML='';btnCont.innerHTML='';return;}
   const ev=eventos.find(e=>e.id===id);
-  let items=[];
-  try{items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[];}catch(e){}
-  if(!ev||!items.length){
-    cont.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-box-off"></i><p>Sin artículos en este evento</p></div></div>';
-    btnCont.innerHTML='';return;
-  }
+  let items=[];try{items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[];}catch(e){}
+  if(!items.length){cont.innerHTML='<div class="card"><div class="empty-state"><i class="ti ti-box-off"></i><p>Sin artículos en este evento</p></div></div>';btnCont.innerHTML='';return;}
   cont.innerHTML='<div class="section-title">Verificar artículos devueltos</div>'+
-    items.map((it,idx)=>`
-      <div class="card" style="margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div><div style="font-size:14px;font-weight:500;">${it.nombre||it.folio}</div>
-          <div style="font-size:12px;color:var(--ma-purple-light);">Rentados: ${it.cantidad}</div></div>
-          <span class="folio">${it.folio}</span>
-        </div>
-        <div class="form-row-2">
-          <div class="form-group"><label>Devueltos</label>
-            <input type="number" id="dev-ret-${idx}" value="${it.cantidad}" min="0" max="${it.cantidad}"
-              style="padding:10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:15px;background:var(--ma-white);color:var(--ma-purple-dark);">
-          </div>
-          <div class="form-group"><label>Estado</label>
-            <select id="dev-est-${idx}" style="padding:10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:14px;background:var(--ma-white);color:var(--ma-purple-dark);-webkit-appearance:none;">
-              <option value="bien">Bien</option>
-              <option value="dano">Con daño</option>
-              <option value="perdida">Pérdida total</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group"><label>Cargo por daño ($)</label>
-          <input type="number" id="dev-cargo-${idx}" placeholder="0" min="0"
-            style="padding:10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:15px;background:var(--ma-white);color:var(--ma-purple-dark);">
-        </div>
-      </div>`).join('');
-  btnCont.innerHTML=`<button class="btn btn-primary btn-block" onclick="cerrarEvento('${id}')">
-    <i class="ti ti-check"></i> Cerrar evento y actualizar stock
-  </button><div style="height:12px;"></div>`;
+    items.map((it,idx)=>`<div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div><div style="font-size:14px;font-weight:500;">${it.nombre||it.folio}</div><div style="font-size:12px;color:var(--ma-purple-light);">Rentados: ${it.cantidad}</div></div>
+        <span class="folio">${it.folio}</span>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group"><label>Devueltos</label><input type="number" id="dev-ret-${idx}" value="${it.cantidad}" min="0" max="${it.cantidad}" style="padding:10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:15px;background:var(--ma-white);color:var(--ma-purple-dark);"></div>
+        <div class="form-group"><label>Estado</label><select id="dev-est-${idx}" style="padding:10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:14px;background:var(--ma-white);color:var(--ma-purple-dark);-webkit-appearance:none;"><option value="bien">Bien</option><option value="dano">Con daño</option><option value="perdida">Pérdida total</option></select></div>
+      </div>
+      <div class="form-group"><label>Cargo por daño ($)</label><input type="number" id="dev-cargo-${idx}" placeholder="0" min="0" style="padding:10px;border:0.5px solid rgba(107,74,142,0.3);border-radius:9px;font-size:15px;background:var(--ma-white);color:var(--ma-purple-dark);"></div>
+    </div>`).join('');
+  btnCont.innerHTML=`<button class="btn btn-primary btn-block" onclick="cerrarEvento('${id}')"><i class="ti ti-check"></i> Cerrar evento y actualizar stock</button><div style="height:12px;"></div>`;
 }
-
-async function cerrarEvento(id) {
-  const ev=eventos.find(e=>e.id===id);
-  if(!ev) return;
-  let items=[];
-  try{items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[];}catch(e){}
+async function cerrarEvento(id){
+  const ev=eventos.find(e=>e.id===id);if(!ev)return;
+  let items=[];try{items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[];}catch(e){}
   let totalCargo=0;
   setSyncStatus('syncing');
   for(let idx=0;idx<items.length;idx++){
@@ -1034,23 +1153,20 @@ async function cerrarEvento(id) {
     const ret=parseInt(document.getElementById('dev-ret-'+idx)?.value)||0;
     const cargo=parseFloat(document.getElementById('dev-cargo-'+idx)?.value)||0;
     totalCargo+=cargo;
-    const invItem=inventario.find(i=>i.folio===it.folio);
-    if(invItem){
-      const newDisp=Math.min(invItem.stock,invItem.disponible+ret);
-      await sb.from('inventario').update({disponible:newDisp}).eq('id',invItem.id);
-    }
+    const inv=inventario.find(i=>i.folio===it.folio);
+    if(inv){const nd=Math.min(inv.stock,inv.disponible+ret);await sb.from('inventario').update({disponible:nd}).eq('id',inv.id);}
   }
   await sb.from('eventos').update({estatus:'Cerrado',cargo_danos:totalCargo}).eq('id',id);
-  await loadInventario();
-  await loadEventos();
+  if(totalCargo>0){
+    await sb.from('ingresos').insert({fecha:new Date().toISOString().split('T')[0],concepto:'Cargo daños — '+ev.cliente,tipo:'Otro',monto:totalCargo,evento_folio:ev.folio,cliente:ev.cliente});
+  }
+  await Promise.all([loadInventario(),loadEventos(),loadIngresos()]);
   setSyncStatus('online');
   renderDevoluciones();
-  showToast(totalCargo>0?'Evento cerrado · Cargo daños: $'+totalCargo.toFixed(2):'Evento cerrado exitosamente');
+  showToast(totalCargo>0?'Evento cerrado · Cargo: $'+totalCargo.toFixed(2):'Evento cerrado exitosamente');
 }
 
-// ═══════════════════════════════════════════════
-//  ARRANQUE
-// ═══════════════════════════════════════════════
+// ── ARRANQUE ──────────────────────────────────
 init();
 </script>
 </body>
