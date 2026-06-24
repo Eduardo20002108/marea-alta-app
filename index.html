@@ -253,24 +253,6 @@ html,body{height:100%;font-family:'Inter',sans-serif;color:var(--ma-purple-dark)
 .print-header{display:none;text-align:center;margin-bottom:24px;}
 .print-header h1{font-family:'Playfair Display',serif;font-size:28px;color:var(--ma-purple-dark);}
 .print-header p{font-size:13px;color:var(--ma-purple-mid);margin-top:4px;}
-
-/* Force layout via JS device detection (overrides width-only media queries for tricky devices like iPhone) */
-body.force-mobile .sidebar{display:none!important;}
-body.force-mobile .bottom-nav{display:flex!important;}
-body.force-mobile .fab{display:flex!important;}
-body.force-mobile .desktop-only{display:none!important;}
-body.force-mobile .content-inner{padding:14px 14px calc(var(--nav-h)+14px)!important;}
-body.force-mobile .stats-grid{grid-template-columns:1fr 1fr!important;}
-body.force-mobile .fin-grid{grid-template-columns:1fr!important;}
-body.force-mobile #cot-layout{grid-template-columns:1fr!important;}
-body.force-mobile .fin-split{grid-template-columns:1fr!important;}
-body.force-mobile .desktop-grid{grid-template-columns:1fr!important;}
-
-body.force-desktop .sidebar{display:flex!important;}
-body.force-desktop .bottom-nav{display:none!important;}
-body.force-desktop .fab{display:none!important;}
-body.force-desktop .mobile-only{display:none!important;}
-body.force-desktop .desktop-only{display:inline-flex!important;}
 </style>
 </head>
 <body>
@@ -349,7 +331,7 @@ body.force-desktop .desktop-only{display:inline-flex!important;}
         <div class="page" id="page-inventario">
           <div class="page-header">
             <div><div class="page-title">Inventario</div><div class="page-subtitle">Catálogo con folio único</div></div>
-            <button class="btn btn-primary desktop-only" onclick="openItemModal()"><i class="ti ti-plus"></i> Nuevo artículo</button>
+            <button class="btn btn-primary" onclick="(window.innerWidth<=700)?openItemSheet():openItemModal()"><i class="ti ti-plus"></i> Nuevo artículo</button>
           </div>
           <div class="card" style="padding:12px 14px;margin-bottom:12px;">
             <input type="text" id="inv-search" placeholder="Buscar por nombre o folio..."
@@ -587,26 +569,10 @@ let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const PREFIJOS={'Mesas y sillas':'SLL','Manteles':'MTL','Decoración':'DEC','Vajilla':'VAJ','Herramientas':'HER','Iluminación':'ILM','Otro':'GEN'};
 const ST_MAP={Pagado:'badge-green',Confirmado:'badge-amber',Anticipo:'badge-blue',Cotizado:'badge-gray',Cancelado:'badge-red',Cerrado:'badge-purple'};
 const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-function isMobile(){
-  const touchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-  const narrowScreen = window.innerWidth <= 700;
-  const userAgentMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  return userAgentMobile || (touchDevice && narrowScreen);
-}
+const isMobile=()=>window.innerWidth<=700;
 
 // ── INIT ──────────────────────────────────────
-function applyDeviceLayout(){
-  if(isMobile()){
-    document.body.classList.add('force-mobile');
-    document.body.classList.remove('force-desktop');
-  } else {
-    document.body.classList.add('force-desktop');
-    document.body.classList.remove('force-mobile');
-  }
-}
 async function init(){
-  applyDeviceLayout();
-  window.addEventListener('resize', applyDeviceLayout);
   setLoading('Conectando con la nube...');
   try{
     await Promise.all([loadInventario(),loadEventos(),loadIngresos(),loadEgresos()]);
