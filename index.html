@@ -395,6 +395,14 @@ html,body{height:100%;font-family:'Inter',sans-serif;color:var(--ma-purple-dark)
                   <div class="resumen-row"><span>Mano de obra</span><span id="r-mo">$0.00</span></div>
                   <div class="resumen-row" style="align-items:center;">
                     <span style="display:flex;align-items:center;gap:8px;">
+                      Descuento
+                      <input type="number" id="cot-descuento" placeholder="0" min="0" max="100" oninput="calcTotales()" style="width:50px;padding:4px 6px;font-size:12px;border:0.5px solid rgba(107,74,142,0.3);border-radius:6px;background:var(--ma-white);color:var(--ma-purple-dark);">
+                      <span style="font-size:11px;color:var(--ma-purple-light);">%</span>
+                    </span>
+                    <span id="r-descuento">-$0.00</span>
+                  </div>
+                  <div class="resumen-row" style="align-items:center;">
+                    <span style="display:flex;align-items:center;gap:8px;">
                       IVA (16%)
                       <span class="iva-switch" id="iva-switch" onclick="toggleIVA()"><span class="iva-knob"></span></span>
                     </span>
@@ -577,7 +585,7 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let inventario=[],eventos=[],ingresos=[],egresos=[],cotItems=[];
-let currentPage='dashboard',currentItemId=null,currentEventoId=null,currentMovTipo='ingreso';
+let currentPage='dashboard',currentItemId=null,currentEventoId=null,currentMovTipo='ingreso',editingEventId=null;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const PREFIJOS={'Mesas y sillas':'SLL','Manteles':'MTL','Decoración':'DEC','Vajilla':'VAJ','Herramientas':'HER','Iluminación':'ILM','Otro':'GEN'};
 const ST_MAP={Pagado:'badge-green',Confirmado:'badge-amber',Anticipo:'badge-blue',Cotizado:'badge-gray',Cancelado:'badge-red',Cerrado:'badge-purple'};
@@ -637,6 +645,9 @@ function setupRealtime(){
 
 // ── NAVIGATION ────────────────────────────────
 function showPage(id,el){
+  if(currentPage==='cotizador' && id!=='cotizador' && editingEventId){
+    cancelarEdicion();
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item,.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
@@ -871,10 +882,16 @@ function calcTotales(){
   let mo=0;const t=document.getElementById('mo-tipo')?.value;
   if(t==='fijo')mo=parseFloat(document.getElementById('mo-val')?.value)||0;
   else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
-  const sub=renta+mo;const iva=ivaActive?sub*0.16:0;const total=sub+iva;
+  const sub=renta+mo;
+  const descPct=Math.min(100,Math.max(0,parseFloat(document.getElementById('cot-descuento')?.value)||0));
+  const descMonto=sub*(descPct/100);
+  const subConDesc=sub-descMonto;
+  const iva=ivaActive?subConDesc*0.16:0;
+  const total=subConDesc+iva;
   const ant=parseFloat(document.getElementById('cot-anticipo')?.value)||0;
   document.getElementById('r-renta').textContent='$'+renta.toFixed(2);
   document.getElementById('r-mo').textContent='$'+mo.toFixed(2);
+  document.getElementById('r-descuento').textContent='-$'+descMonto.toFixed(2);
   document.getElementById('r-iva').textContent='$'+iva.toFixed(2);
   document.getElementById('r-total').textContent='$'+total.toFixed(2);
   document.getElementById('r-saldo').textContent='$'+Math.max(0,total-ant).toFixed(2);
@@ -890,23 +907,95 @@ async function guardarCotizacion(){
   if(moTipo==='fijo')mo=parseFloat(document.getElementById('mo-val')?.value)||0;
   else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
   const renta=cotItems.reduce((s,i)=>s+i.precio*i.cantidad,0);
-  const total=parseFloat(((renta+mo)*(ivaActive?1.16:1)).toFixed(2));
+  const descPct=Math.min(100,Math.max(0,parseFloat(document.getElementById('cot-descuento')?.value)||0));
+  const sub=renta+mo;
+  const subConDesc=sub-(sub*(descPct/100));
+  const total=parseFloat((subConDesc*(ivaActive?1.16:1)).toFixed(2));
   const anticipo=parseFloat(document.getElementById('cot-anticipo')?.value)||0;
   setSyncStatus('syncing');
+
+  if(editingEventId){
+    // Modo edición: actualiza el evento existente en lugar de crear uno nuevo
+    const estatusActual=eventos.find(e=>e.id===editingEventId)?.estatus||'Cotizado';
+    await sb.from('eventos').update({
+      cliente,tipo,fecha,lugar,total,anticipo,mano_obra:mo,
+      items:JSON.stringify(cotItems),descuento_pct:descPct,iva_activo:ivaActive
+    }).eq('id',editingEventId);
+    await loadEventos();
+    setSyncStatus('online');
+    showToast('Evento actualizado');
+    cancelarEdicion();
+    showPage('eventos',null);
+    return;
+  }
+
   const num=await getNextEvtNum();
   const folio='EVT-'+new Date().getFullYear()+'-'+String(num).padStart(3,'0');
-  await sb.from('eventos').insert({folio,cliente,tipo,fecha,lugar,total,anticipo,mano_obra:mo,items:JSON.stringify(cotItems),estatus:anticipo>0?'Anticipo':'Cotizado'});
+  await sb.from('eventos').insert({folio,cliente,tipo,fecha,lugar,total,anticipo,mano_obra:mo,items:JSON.stringify(cotItems),estatus:anticipo>0?'Anticipo':'Cotizado',descuento_pct:descPct,iva_activo:ivaActive});
   if(anticipo>0){
     await sb.from('ingresos').insert({fecha:fecha||new Date().toISOString().split('T')[0],concepto:'Anticipo — '+cliente,tipo:'Anticipo',monto:anticipo,evento_folio:folio,cliente});
   }
   cotItems=[];
   ivaActive=false;
   const ivaSw=document.getElementById('iva-switch');if(ivaSw)ivaSw.classList.remove('on');
-  ['cot-cliente','cot-fecha','cot-lugar','mo-val','cot-anticipo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['cot-cliente','cot-fecha','cot-lugar','mo-val','cot-anticipo','cot-descuento'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   await Promise.all([loadEventos(),loadIngresos()]);
   setSyncStatus('online');
   showToast('Evento guardado: '+folio);
   showPage('eventos',null);
+}
+
+function editarEvento(id){
+  const ev=eventos.find(e=>e.id===id);if(!ev)return;
+  let items=[];try{items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[];}catch(e){}
+  editingEventId=id;
+  cotItems=items.map(it=>({folio:it.folio,nombre:it.nombre,cantidad:it.cantidad,precio:parseFloat(it.precio)}));
+  document.getElementById('cot-cliente').value=ev.cliente||'';
+  document.getElementById('cot-tipo').value=ev.tipo||'Boda';
+  document.getElementById('cot-fecha').value=ev.fecha||'';
+  document.getElementById('cot-lugar').value=ev.lugar||'';
+  document.getElementById('cot-descuento').value=ev.descuento_pct||'';
+  document.getElementById('cot-anticipo').value=ev.anticipo||'';
+  ivaActive=!!ev.iva_activo;
+  const ivaSw=document.getElementById('iva-switch');if(ivaSw)ivaSw.classList.toggle('on',ivaActive);
+  const mo=parseFloat(ev.mano_obra)||0;
+  if(mo>0){
+    document.getElementById('mo-tipo').value='fijo';
+    document.getElementById('mo-val').value=mo;
+    document.getElementById('mo-fijo-row').style.display='block';
+    document.getElementById('mo-horas-row').style.display='none';
+  }else{
+    document.getElementById('mo-tipo').value='fijo';
+    document.getElementById('mo-val').value='';
+  }
+  // Show banner + change save button label
+  showEditBanner(ev.folio);
+  isMobile()?closeSheet('sheet-evento-detail'):closeModal('modal-evento-detail');
+  showPage('cotizador',null);
+  renderCotItems();
+}
+
+function showEditBanner(folio){
+  let banner=document.getElementById('edit-banner');
+  if(!banner){
+    banner=document.createElement('div');
+    banner.id='edit-banner';
+    banner.className='alert alert-info';
+    banner.style.marginBottom='14px';
+    const cotPage=document.getElementById('page-cotizador');
+    cotPage.insertBefore(banner,cotPage.firstChild);
+  }
+  banner.innerHTML=`<i class="ti ti-edit" style="font-size:16px;flex-shrink:0;"></i><span style="flex:1;">Editando evento <strong>${folio}</strong></span><button class="btn btn-sm" onclick="cancelarEdicion()" style="padding:4px 10px;">Cancelar</button>`;
+}
+
+function cancelarEdicion(){
+  editingEventId=null;
+  cotItems=[];
+  ivaActive=false;
+  const ivaSw=document.getElementById('iva-switch');if(ivaSw)ivaSw.classList.remove('on');
+  ['cot-cliente','cot-fecha','cot-lugar','mo-val','cot-anticipo','cot-descuento'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const banner=document.getElementById('edit-banner');if(banner)banner.remove();
+  renderCotItems();
 }
 
 function generarPDFCotizacion(){
@@ -1111,6 +1200,7 @@ function showEventoDetail(id){
       <div class="resumen-total"><span>Saldo pendiente</span><span>$${saldo.toFixed(2)}</span></div>
     </div>
     ${saldo>0?`<button class="btn btn-success btn-block" onclick="registrarSaldo('${id}')" style="margin-bottom:10px;"><i class="ti ti-cash"></i> Registrar pago de saldo ($${saldo.toFixed(2)})</button>`:''}
+    <button class="btn btn-block" onclick="editarEvento('${id}')" style="margin-bottom:10px;border-color:var(--ma-purple-mid);color:var(--ma-purple-mid);"><i class="ti ti-edit"></i> Editar artículos, IVA y descuento</button>
     <button class="btn btn-block" onclick="generarPDFEvento('${id}')" style="margin-bottom:10px;border-color:var(--ma-purple-mid);color:var(--ma-purple-mid);"><i class="ti ti-file-type-pdf"></i> Descargar PDF del evento</button>
     <div style="margin-bottom:14px;">
       <div style="font-size:12px;color:var(--ma-purple-mid);font-weight:500;margin-bottom:8px;">Artículos rentados</div>
