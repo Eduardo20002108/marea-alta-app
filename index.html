@@ -919,27 +919,57 @@ function generarPDFCotizacion(){
   let mo=0;const moTipo=document.getElementById('mo-tipo').value;
   if(moTipo==='fijo')mo=parseFloat(document.getElementById('mo-val')?.value)||0;
   else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
-  const renta=cotItems.reduce((s,i)=>s+i.precio*i.cantidad,0);
-  const sub=renta+mo;
-  const iva=ivaActive?sub*0.16:0;
-  const total=sub+iva;
   const anticipo=parseFloat(document.getElementById('cot-anticipo')?.value)||0;
-  const saldo=Math.max(0,total-anticipo);
-  const fechaFmt=fecha?new Date(fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}):'Por confirmar';
-  const hoyFmt=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
-  const folioPreview='COT-'+Date.now().toString().slice(-6);
+  abrirPDFDocumento({
+    cliente,tipo,fecha,lugar,mo,anticipo,
+    items:cotItems,
+    ivaActiva:ivaActive,
+    folioLabel:'COT-'+Date.now().toString().slice(-6),
+    docSubtitle:'COTIZACIÓN DE SERVICIOS Y RENTA DE MOBILIARIO',
+    fechaEmision:new Date()
+  });
+}
 
-  const itemsRows=cotItems.map(it=>`
+function generarPDFEvento(id){
+  const ev=eventos.find(e=>e.id===id);if(!ev)return;
+  let items=[];try{items=typeof ev.items==='string'?JSON.parse(ev.items):ev.items||[];}catch(e){}
+  if(!items.length){showToast('Este evento no tiene artículos registrados');return;}
+  abrirPDFDocumento({
+    cliente:ev.cliente,tipo:ev.tipo,fecha:ev.fecha,lugar:ev.lugar||'',
+    mo:parseFloat(ev.mano_obra)||0,
+    anticipo:parseFloat(ev.anticipo)||0,
+    items,
+    ivaActiva:false, // total ya viene calculado con o sin IVA al momento de guardar
+    totalOverride:parseFloat(ev.total)||0,
+    folioLabel:ev.folio,
+    docSubtitle:'CONFIRMACIÓN DE EVENTO Y SERVICIOS CONTRATADOS',
+    fechaEmision:new Date(),
+    estatus:ev.estatus
+  });
+}
+
+function abrirPDFDocumento(d){
+  const renta=d.items.reduce((s,i)=>s+i.precio*i.cantidad,0);
+  const mo=d.mo||0;
+  const sub=renta+mo;
+  const iva=d.ivaActiva?sub*0.16:0;
+  const total=d.totalOverride!=null?d.totalOverride:sub+iva;
+  const anticipo=d.anticipo||0;
+  const saldo=Math.max(0,total-anticipo);
+  const fechaFmt=d.fecha?new Date(d.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}):'Por confirmar';
+  const hoyFmt=d.fechaEmision.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+
+  const itemsRows=d.items.map(it=>`
     <tr>
       <td style="padding:10px 14px;font-size:13px;color:#3D1A5E;">${it.nombre||it.folio}</td>
       <td style="padding:10px 14px;font-size:13px;color:#6B4A8E;text-align:center;">${it.cantidad}</td>
-      <td style="padding:10px 14px;font-size:13px;color:#6B4A8E;text-align:right;">$${it.precio.toFixed(2)}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#6B4A8E;text-align:right;">$${parseFloat(it.precio).toFixed(2)}</td>
       <td style="padding:10px 14px;font-size:13px;color:#3D1A5E;font-weight:600;text-align:right;">$${(it.precio*it.cantidad).toFixed(2)}</td>
     </tr>`).join('');
 
   const html=`<!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8">
-<title>Cotización Marea Alta — ${cliente}</title>
+<title>${d.docSubtitle.includes('COTIZACIÓN')?'Cotización':'Evento'} Marea Alta — ${d.cliente}</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -992,15 +1022,15 @@ function generarPDFCotizacion(){
       <div class="alta">Alta</div>
       <div class="ev-tag">Eventos</div>
     </div>
-    <div class="doc-sub">COTIZACIÓN DE SERVICIOS Y RENTA DE MOBILIARIO</div>
+    <div class="doc-sub">${d.docSubtitle}</div>
     <div class="doc-body">
-      <div class="doc-title">Cotización para ${cliente}</div>
-      <div class="doc-meta">Folio ${folioPreview} · Emitida el ${hoyFmt}</div>
+      <div class="doc-title">${d.docSubtitle.includes('COTIZACIÓN')?'Cotización':'Evento'} para ${d.cliente}</div>
+      <div class="doc-meta">Folio ${d.folioLabel} · Emitido el ${hoyFmt}${d.estatus?' · Estatus: '+d.estatus:''}</div>
 
       <div class="info-grid">
-        <div class="info-box"><div class="info-label">Tipo de evento</div><div class="info-val">${tipo}</div></div>
+        <div class="info-box"><div class="info-label">Tipo de evento</div><div class="info-val">${d.tipo}</div></div>
         <div class="info-box"><div class="info-label">Fecha del evento</div><div class="info-val">${fechaFmt}</div></div>
-        ${lugar?`<div class="info-box" style="grid-column:1/-1;"><div class="info-label">Lugar</div><div class="info-val">${lugar}</div></div>`:''}
+        ${d.lugar?`<div class="info-box" style="grid-column:1/-1;"><div class="info-label">Lugar</div><div class="info-val">${d.lugar}</div></div>`:''}
       </div>
 
       <div class="section-label">Artículos y servicios incluidos</div>
@@ -1012,17 +1042,17 @@ function generarPDFCotizacion(){
       <div class="totals">
         <div class="trow"><span>Renta de artículos</span><span>$${renta.toFixed(2)}</span></div>
         ${mo>0?`<div class="trow"><span>Mano de obra / instalación</span><span>$${mo.toFixed(2)}</span></div>`:''}
-        ${ivaActive?`<div class="trow"><span>IVA (16%)</span><span>$${iva.toFixed(2)}</span></div>`:''}
+        ${d.ivaActiva?`<div class="trow"><span>IVA (16%)</span><span>$${iva.toFixed(2)}</span></div>`:''}
         <div class="ttotal"><span>Total</span><span>$${total.toFixed(2)}</span></div>
       </div>
 
       ${anticipo>0?`
       <div class="pay-grid">
-        <div class="pay-box anticipo"><div class="pay-label">Anticipo requerido</div><div class="pay-val">$${anticipo.toFixed(2)}</div></div>
+        <div class="pay-box anticipo"><div class="pay-label">Anticipo ${d.estatus==='Pagado'?'cubierto':'requerido'}</div><div class="pay-val">$${anticipo.toFixed(2)}</div></div>
         <div class="pay-box saldo"><div class="pay-label">Saldo restante</div><div class="pay-val">$${saldo.toFixed(2)}</div></div>
       </div>`:''}
 
-      <div class="note">Esta cotización tiene una vigencia de 15 días. Los precios pueden variar según disponibilidad de inventario en la fecha del evento.</div>
+      <div class="note">${d.docSubtitle.includes('COTIZACIÓN')?'Esta cotización tiene una vigencia de 15 días. Los precios pueden variar según disponibilidad de inventario en la fecha del evento.':'Documento de referencia del evento contratado con Marea Alta Eventos.'}</div>
     </div>
     <div class="doc-footer">
       <div class="footer-title">Gracias por confiar en nosotras</div>
@@ -1081,6 +1111,7 @@ function showEventoDetail(id){
       <div class="resumen-total"><span>Saldo pendiente</span><span>$${saldo.toFixed(2)}</span></div>
     </div>
     ${saldo>0?`<button class="btn btn-success btn-block" onclick="registrarSaldo('${id}')" style="margin-bottom:10px;"><i class="ti ti-cash"></i> Registrar pago de saldo ($${saldo.toFixed(2)})</button>`:''}
+    <button class="btn btn-block" onclick="generarPDFEvento('${id}')" style="margin-bottom:10px;border-color:var(--ma-purple-mid);color:var(--ma-purple-mid);"><i class="ti ti-file-type-pdf"></i> Descargar PDF del evento</button>
     <div style="margin-bottom:14px;">
       <div style="font-size:12px;color:var(--ma-purple-mid);font-weight:500;margin-bottom:8px;">Artículos rentados</div>
       ${items.map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:0.5px solid rgba(107,74,142,0.1);"><span>${i.nombre||i.folio} × ${i.cantidad}</span><span style="color:var(--ma-purple-mid);">$${(i.precio*i.cantidad).toFixed(2)}</span></div>`).join('')||'<div style="font-size:13px;color:var(--ma-purple-light);">Sin artículos</div>'}
