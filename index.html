@@ -587,7 +587,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let inventario=[],eventos=[],ingresos=[],egresos=[],cotItems=[];
 let currentPage='dashboard',currentItemId=null,currentEventoId=null,currentMovTipo='ingreso',editingEventId=null;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
-const PREFIJOS={'Mesas y sillas':'SLL','Manteles':'MTL','Decoración':'DEC','Vajilla':'VAJ','Herramientas':'HER','Iluminación':'ILM','Otro':'GEN'};
+const PREFIJOS={'Decoración de mesa':'DME','Decoración de estación de fotos y mamparas':'DEF','Renta de vajilla':'VAJ','Renta de sillas':'SLL','General':'GEN','Papelería general':'PAP'};
 const ST_MAP={Pagado:'badge-green',Confirmado:'badge-amber',Anticipo:'badge-blue',Cotizado:'badge-gray',Cancelado:'badge-red',Cerrado:'badge-purple'};
 const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const isMobile=()=>window.innerWidth<=700;
@@ -742,7 +742,7 @@ function itemFormHTML(item){
   return `
     <div class="form-group"><label>Nombre</label><input type="text" id="ni-nombre" placeholder="Ej. Mantel redondo blanco" value="${item?.nombre||''}"></div>
     <div class="form-group"><label>Categoría</label><select id="ni-cat">
-      ${['Mesas y sillas','Manteles','Decoración','Vajilla','Herramientas','Iluminación','Otro'].map(c=>`<option${item?.categoria===c?' selected':''}>${c}</option>`).join('')}
+      ${['Decoración de mesa','Decoración de estación de fotos y mamparas','Renta de vajilla','Renta de sillas','General','Papelería general'].map(c=>`<option${item?.categoria===c?' selected':''}>${c}</option>`).join('')}
     </select></div>
     <div class="form-row-2">
       <div class="form-group"><label>Stock total</label><input type="number" id="ni-stock" placeholder="0" min="1" value="${item?.stock||''}"></div>
