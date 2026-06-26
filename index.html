@@ -177,6 +177,12 @@ html,body{height:100%;font-family:'Inter',sans-serif;color:var(--ma-purple-dark)
 .resumen-row{display:flex;justify-content:space-between;font-size:13px;color:var(--ma-purple-mid);padding:4px 0;}
 .resumen-total{display:flex;justify-content:space-between;font-size:17px;font-weight:500;color:var(--ma-purple-dark);padding-top:10px;margin-top:4px;border-top:0.5px solid var(--ma-lavender-deep);}
 
+/* IVA TOGGLE SWITCH */
+.iva-switch{display:inline-block;width:34px;height:19px;border-radius:20px;background:var(--ma-lavender-deep);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.iva-switch.on{background:var(--ma-purple-mid);}
+.iva-knob{position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.iva-switch.on .iva-knob{left:17px;}
+
 /* ── FINANZAS ── */
 .fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
 .fin-chart{display:flex;flex-direction:column;gap:6px;}
@@ -387,11 +393,18 @@ html,body{height:100%;font-family:'Inter',sans-serif;color:var(--ma-purple-dark)
                 <div class="resumen-box">
                   <div class="resumen-row"><span>Renta artículos</span><span id="r-renta">$0.00</span></div>
                   <div class="resumen-row"><span>Mano de obra</span><span id="r-mo">$0.00</span></div>
-                  <div class="resumen-row"><span>IVA (16%)</span><span id="r-iva">$0.00</span></div>
+                  <div class="resumen-row" style="align-items:center;">
+                    <span style="display:flex;align-items:center;gap:8px;">
+                      IVA (16%)
+                      <span class="iva-switch" id="iva-switch" onclick="toggleIVA()"><span class="iva-knob"></span></span>
+                    </span>
+                    <span id="r-iva">$0.00</span>
+                  </div>
                   <div class="resumen-total"><span>Total</span><span id="r-total">$0.00</span></div>
                 </div>
                 <div class="form-group" style="margin-top:14px;"><label>Anticipo / Depósito ($)</label><input type="number" id="cot-anticipo" placeholder="0" min="0" oninput="calcTotales()"></div>
                 <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500;margin-bottom:16px;"><span>Saldo pendiente</span><span style="color:var(--ma-purple-mid);" id="r-saldo">$0.00</span></div>
+                <button class="btn btn-block" onclick="generarPDFCotizacion()" style="margin-bottom:8px;border-color:var(--ma-purple-mid);color:var(--ma-purple-mid);"><i class="ti ti-file-type-pdf"></i> Generar PDF para cliente</button>
                 <button class="btn btn-primary btn-block" onclick="guardarCotizacion()"><i class="ti ti-device-floppy"></i> Guardar como evento</button>
               </div>
             </div>
@@ -847,12 +860,18 @@ function onCantChange(idx,val){
 }
 function removeCotItem(idx){cotItems.splice(idx,1);renderCotItems();}
 function toggleMO(){const t=document.getElementById('mo-tipo').value;document.getElementById('mo-fijo-row').style.display=t==='fijo'?'block':'none';document.getElementById('mo-horas-row').style.display=t==='horas'?'grid':'none';calcTotales();}
+let ivaActive=false;
+function toggleIVA(){
+  ivaActive=!ivaActive;
+  document.getElementById('iva-switch').classList.toggle('on',ivaActive);
+  calcTotales();
+}
 function calcTotales(){
   const renta=cotItems.reduce((s,i)=>s+i.precio*i.cantidad,0);
   let mo=0;const t=document.getElementById('mo-tipo')?.value;
   if(t==='fijo')mo=parseFloat(document.getElementById('mo-val')?.value)||0;
   else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
-  const sub=renta+mo;const iva=sub*0.16;const total=sub+iva;
+  const sub=renta+mo;const iva=ivaActive?sub*0.16:0;const total=sub+iva;
   const ant=parseFloat(document.getElementById('cot-anticipo')?.value)||0;
   document.getElementById('r-renta').textContent='$'+renta.toFixed(2);
   document.getElementById('r-mo').textContent='$'+mo.toFixed(2);
@@ -871,7 +890,7 @@ async function guardarCotizacion(){
   if(moTipo==='fijo')mo=parseFloat(document.getElementById('mo-val')?.value)||0;
   else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
   const renta=cotItems.reduce((s,i)=>s+i.precio*i.cantidad,0);
-  const total=parseFloat(((renta+mo)*1.16).toFixed(2));
+  const total=parseFloat(((renta+mo)*(ivaActive?1.16:1)).toFixed(2));
   const anticipo=parseFloat(document.getElementById('cot-anticipo')?.value)||0;
   setSyncStatus('syncing');
   const num=await getNextEvtNum();
@@ -881,11 +900,146 @@ async function guardarCotizacion(){
     await sb.from('ingresos').insert({fecha:fecha||new Date().toISOString().split('T')[0],concepto:'Anticipo — '+cliente,tipo:'Anticipo',monto:anticipo,evento_folio:folio,cliente});
   }
   cotItems=[];
+  ivaActive=false;
+  const ivaSw=document.getElementById('iva-switch');if(ivaSw)ivaSw.classList.remove('on');
   ['cot-cliente','cot-fecha','cot-lugar','mo-val','cot-anticipo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   await Promise.all([loadEventos(),loadIngresos()]);
   setSyncStatus('online');
   showToast('Evento guardado: '+folio);
   showPage('eventos',null);
+}
+
+function generarPDFCotizacion(){
+  const cliente=document.getElementById('cot-cliente')?.value.trim();
+  if(!cliente){showToast('Ingresa el nombre del cliente');return;}
+  if(!cotItems.length){showToast('Agrega al menos un artículo');return;}
+  const tipo=document.getElementById('cot-tipo').value;
+  const fecha=document.getElementById('cot-fecha').value;
+  const lugar=document.getElementById('cot-lugar').value.trim();
+  let mo=0;const moTipo=document.getElementById('mo-tipo').value;
+  if(moTipo==='fijo')mo=parseFloat(document.getElementById('mo-val')?.value)||0;
+  else{const h=parseFloat(document.getElementById('mo-horas')?.value)||0;const r=parseFloat(document.getElementById('mo-tarifa')?.value)||0;mo=h*r;}
+  const renta=cotItems.reduce((s,i)=>s+i.precio*i.cantidad,0);
+  const sub=renta+mo;
+  const iva=ivaActive?sub*0.16:0;
+  const total=sub+iva;
+  const anticipo=parseFloat(document.getElementById('cot-anticipo')?.value)||0;
+  const saldo=Math.max(0,total-anticipo);
+  const fechaFmt=fecha?new Date(fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}):'Por confirmar';
+  const hoyFmt=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+  const folioPreview='COT-'+Date.now().toString().slice(-6);
+
+  const itemsRows=cotItems.map(it=>`
+    <tr>
+      <td style="padding:10px 14px;font-size:13px;color:#3D1A5E;">${it.nombre||it.folio}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#6B4A8E;text-align:center;">${it.cantidad}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#6B4A8E;text-align:right;">$${it.precio.toFixed(2)}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#3D1A5E;font-weight:600;text-align:right;">$${(it.precio*it.cantidad).toFixed(2)}</td>
+    </tr>`).join('');
+
+  const html=`<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<title>Cotización Marea Alta — ${cliente}</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#D6E0F5;color:#3D1A5E;padding:40px 20px;}
+  .doc{max-width:680px;margin:0 auto;background:#FFFFFF;border-radius:18px;overflow:hidden;box-shadow:0 10px 40px rgba(61,26,94,0.15);}
+  .doc-header{background:#3D1A5E;padding:36px 40px;text-align:center;}
+  .doc-header .marea{font-family:'Playfair Display',serif;font-style:italic;font-size:30px;color:#D6E0F5;line-height:1;}
+  .doc-header .alta{font-family:'Playfair Display',serif;font-weight:600;font-size:36px;color:#D6E0F5;line-height:1;margin-top:-6px;}
+  .doc-header .ev-tag{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:#9B7BB8;margin-top:4px;}
+  .doc-sub{background:#EDE5F5;padding:12px 40px;text-align:center;font-size:12px;color:#6B4A8E;letter-spacing:.05em;}
+  .doc-body{padding:36px 40px;}
+  .doc-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:500;color:#3D1A5E;margin-bottom:4px;}
+  .doc-meta{font-size:12px;color:#9B7BB8;margin-bottom:28px;}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+  .info-box{background:#D6E0F5;border-radius:10px;padding:14px 16px;}
+  .info-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#6B4A8E;margin-bottom:4px;}
+  .info-val{font-size:14px;font-weight:600;color:#3D1A5E;}
+  .section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6B4A8E;margin:24px 0 10px;}
+  table{width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;background:#F9F7FD;}
+  thead tr{background:#EDE5F5;}
+  th{padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#6B4A8E;text-align:left;font-weight:600;}
+  th:nth-child(2){text-align:center;}
+  th:nth-child(3),th:nth-child(4){text-align:right;}
+  tbody tr{border-bottom:1px solid #EDE5F5;}
+  tbody tr:last-child{border-bottom:none;}
+  .totals{margin-top:20px;background:#D6E0F5;border-radius:12px;padding:18px 20px;}
+  .trow{display:flex;justify-content:space-between;font-size:13px;color:#6B4A8E;padding:5px 0;}
+  .ttotal{display:flex;justify-content:space-between;font-size:19px;font-weight:600;color:#3D1A5E;padding-top:12px;margin-top:6px;border-top:1px solid #B8C8EE;}
+  .pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
+  .pay-box{border-radius:10px;padding:14px 16px;}
+  .pay-box.anticipo{background:#EDE5F5;}
+  .pay-box.saldo{background:#3D1A5E;}
+  .pay-box .pay-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;}
+  .pay-box.anticipo .pay-label{color:#6B4A8E;}
+  .pay-box.saldo .pay-label{color:#9B7BB8;}
+  .pay-box .pay-val{font-size:18px;font-weight:600;margin-top:4px;}
+  .pay-box.anticipo .pay-val{color:#3D1A5E;}
+  .pay-box.saldo .pay-val{color:#D6E0F5;}
+  .doc-footer{background:#F9F7FD;padding:24px 40px;text-align:center;border-top:1px solid #EDE5F5;}
+  .footer-title{font-family:'Playfair Display',serif;font-style:italic;font-size:15px;color:#3D1A5E;margin-bottom:8px;}
+  .contact-row{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;font-size:12px;color:#6B4A8E;margin-bottom:6px;}
+  .insta{font-size:11px;color:#9B7BB8;letter-spacing:.03em;}
+  .note{font-size:11px;color:#9B7BB8;margin-top:18px;text-align:center;font-style:italic;}
+  @media print{ body{background:#fff;padding:0;} .doc{box-shadow:none;border-radius:0;max-width:100%;} }
+</style></head>
+<body>
+  <div class="doc">
+    <div class="doc-header">
+      <div class="marea">Marea</div>
+      <div class="alta">Alta</div>
+      <div class="ev-tag">Eventos</div>
+    </div>
+    <div class="doc-sub">COTIZACIÓN DE SERVICIOS Y RENTA DE MOBILIARIO</div>
+    <div class="doc-body">
+      <div class="doc-title">Cotización para ${cliente}</div>
+      <div class="doc-meta">Folio ${folioPreview} · Emitida el ${hoyFmt}</div>
+
+      <div class="info-grid">
+        <div class="info-box"><div class="info-label">Tipo de evento</div><div class="info-val">${tipo}</div></div>
+        <div class="info-box"><div class="info-label">Fecha del evento</div><div class="info-val">${fechaFmt}</div></div>
+        ${lugar?`<div class="info-box" style="grid-column:1/-1;"><div class="info-label">Lugar</div><div class="info-val">${lugar}</div></div>`:''}
+      </div>
+
+      <div class="section-label">Artículos y servicios incluidos</div>
+      <table>
+        <thead><tr><th>Concepto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead>
+        <tbody>${itemsRows}</tbody>
+      </table>
+
+      <div class="totals">
+        <div class="trow"><span>Renta de artículos</span><span>$${renta.toFixed(2)}</span></div>
+        ${mo>0?`<div class="trow"><span>Mano de obra / instalación</span><span>$${mo.toFixed(2)}</span></div>`:''}
+        ${ivaActive?`<div class="trow"><span>IVA (16%)</span><span>$${iva.toFixed(2)}</span></div>`:''}
+        <div class="ttotal"><span>Total</span><span>$${total.toFixed(2)}</span></div>
+      </div>
+
+      ${anticipo>0?`
+      <div class="pay-grid">
+        <div class="pay-box anticipo"><div class="pay-label">Anticipo requerido</div><div class="pay-val">$${anticipo.toFixed(2)}</div></div>
+        <div class="pay-box saldo"><div class="pay-label">Saldo restante</div><div class="pay-val">$${saldo.toFixed(2)}</div></div>
+      </div>`:''}
+
+      <div class="note">Esta cotización tiene una vigencia de 15 días. Los precios pueden variar según disponibilidad de inventario en la fecha del evento.</div>
+    </div>
+    <div class="doc-footer">
+      <div class="footer-title">Gracias por confiar en nosotras</div>
+      <div class="contact-row">
+        <span>📱 Mariloli González · 938 184 8915</span>
+        <span>📱 Ailine Yam · 938 136 7462</span>
+      </div>
+      <div class="insta">📷 @marea.aalta</div>
+    </div>
+  </div>
+  <script>window.onload=()=>setTimeout(()=>window.print(),300);</script>
+</body></html>`;
+
+  const win=window.open('','_blank');
+  if(!win){showToast('Permite ventanas emergentes para generar el PDF');return;}
+  win.document.write(html);
+  win.document.close();
 }
 
 // ── EVENTOS ───────────────────────────────────
