@@ -805,7 +805,7 @@ function renderCotItems(){
   cont.innerHTML=cotItems.map((it,idx)=>`
     <div class="cot-item">
       <div class="cot-item-top">
-        <input class="cot-folio-input" type="text" placeholder="Folio" value="${it.folio}" oninput="onFolioChange(${idx},this.value)">
+        <input class="cot-folio-input" type="text" placeholder="Folio" value="${it.folio}" oninput="onFolioChange(${idx},this.value)" onblur="onFolioBlur(${idx})">
         <span class="cot-item-name">${it.nombre||'<span style="color:var(--ma-purple-light);font-weight:400;">Sin coincidencia</span>'}</span>
         <button onclick="removeCotItem(${idx})" class="btn btn-icon btn-danger-soft btn-sm" style="padding:6px;"><i class="ti ti-x"></i></button>
       </div>
@@ -817,8 +817,34 @@ function renderCotItems(){
     </div>`).join('');
   calcTotales();
 }
-function onFolioChange(idx,val){cotItems[idx].folio=val.toUpperCase();const f=inventario.find(i=>i.folio===val.toUpperCase());cotItems[idx].nombre=f?f.nombre:'';cotItems[idx].precio=f?parseFloat(f.precio):0;renderCotItems();}
-function onCantChange(idx,val){cotItems[idx].cantidad=parseInt(val)||1;calcTotales();}
+function onFolioChange(idx,val){
+  const up=val.toUpperCase();
+  cotItems[idx].folio=up;
+  const f=inventario.find(i=>i.folio===up);
+  cotItems[idx].nombre=f?f.nombre:'';
+  cotItems[idx].precio=f?parseFloat(f.precio):0;
+  // Update only the affected subtotal/name text without re-rendering the whole list (keeps keyboard open)
+  const row=document.querySelectorAll('.cot-item')[idx];
+  if(row){
+    const nameEl=row.querySelector('.cot-item-name');
+    const puEl=row.querySelector('.cot-pu');
+    const subEl=row.querySelector('.cot-subtotal');
+    if(nameEl) nameEl.innerHTML=cotItems[idx].nombre||'<span style="color:var(--ma-purple-light);font-weight:400;">Sin coincidencia</span>';
+    if(puEl) puEl.textContent='× $'+cotItems[idx].precio.toFixed(2)+' c/u';
+    if(subEl) subEl.textContent='= $'+(cotItems[idx].precio*cotItems[idx].cantidad).toFixed(2);
+  }
+  calcTotales();
+}
+function onFolioBlur(idx){renderCotItems();}
+function onCantChange(idx,val){
+  cotItems[idx].cantidad=parseInt(val)||1;
+  const row=document.querySelectorAll('.cot-item')[idx];
+  if(row){
+    const subEl=row.querySelector('.cot-subtotal');
+    if(subEl) subEl.textContent='= $'+(cotItems[idx].precio*cotItems[idx].cantidad).toFixed(2);
+  }
+  calcTotales();
+}
 function removeCotItem(idx){cotItems.splice(idx,1);renderCotItems();}
 function toggleMO(){const t=document.getElementById('mo-tipo').value;document.getElementById('mo-fijo-row').style.display=t==='fijo'?'block':'none';document.getElementById('mo-horas-row').style.display=t==='horas'?'grid':'none';calcTotales();}
 function calcTotales(){
