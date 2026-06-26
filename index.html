@@ -1048,12 +1048,25 @@ function abrirPDFDocumento(d){
   const fechaFmt=d.fecha?new Date(d.fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}):'Por confirmar';
   const hoyFmt=d.fechaEmision.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
 
-  const itemsRows=d.items.map(it=>`
+  // Agrupar artículos por categoría (cruzando con el inventario) y sumar el total de cada una
+  const categorias={};
+  let totalArticulosCount=0;
+  d.items.forEach(it=>{
+    const invItem=inventario.find(i=>i.folio===it.folio);
+    const cat=invItem?invItem.categoria:'Otros';
+    const subtotalItem=it.precio*it.cantidad;
+    if(!categorias[cat]) categorias[cat]={total:0,unidades:0};
+    categorias[cat].total+=subtotalItem;
+    categorias[cat].unidades+=it.cantidad;
+    totalArticulosCount+=it.cantidad;
+  });
+
+  const itemsRows=Object.entries(categorias).map(([cat,info])=>`
     <tr>
-      <td style="padding:10px 14px;font-size:13px;color:#3D1A5E;">${it.nombre||it.folio}</td>
-      <td style="padding:10px 14px;font-size:13px;color:#6B4A8E;text-align:center;">${it.cantidad}</td>
-      <td style="padding:10px 14px;font-size:13px;color:#6B4A8E;text-align:right;">$${parseFloat(it.precio).toFixed(2)}</td>
-      <td style="padding:10px 14px;font-size:13px;color:#3D1A5E;font-weight:600;text-align:right;">$${(it.precio*it.cantidad).toFixed(2)}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#3D1A5E;font-weight:500;">${cat}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#6B4A8E;text-align:center;">${info.unidades}</td>
+      <td style="padding:10px 14px;font-size:13px;color:#6B4A8E;text-align:right;">—</td>
+      <td style="padding:10px 14px;font-size:13px;color:#3D1A5E;font-weight:600;text-align:right;">$${info.total.toFixed(2)}</td>
     </tr>`).join('');
 
   const html=`<!DOCTYPE html>
@@ -1122,9 +1135,9 @@ function abrirPDFDocumento(d){
         ${d.lugar?`<div class="info-box" style="grid-column:1/-1;"><div class="info-label">Lugar</div><div class="info-val">${d.lugar}</div></div>`:''}
       </div>
 
-      <div class="section-label">Artículos y servicios incluidos</div>
+      <div class="section-label">Artículos y servicios incluidos (${totalArticulosCount} unidades)</div>
       <table>
-        <thead><tr><th>Concepto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead>
+        <thead><tr><th>Categoría</th><th>Unidades</th><th></th><th>Subtotal</th></tr></thead>
         <tbody>${itemsRows}</tbody>
       </table>
 
