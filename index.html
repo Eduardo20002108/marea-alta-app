@@ -302,6 +302,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;color:var(--ma-purple-dark)
       <div class="nav-item" onclick="showPage('finanzas',this)" id="snav-finanzas"><i class="ti ti-chart-line"></i> Ingresos y egresos</div>
       <div class="nav-section-label">Post-evento</div>
       <div class="nav-item" onclick="showPage('devoluciones',this)" id="snav-devoluciones"><i class="ti ti-rotate-clockwise-2"></i> Devoluciones</div>
+      <div class="nav-item" onclick="showPage('contrato',this)" id="snav-contrato"><i class="ti ti-writing-sign"></i> Contrato</div>
     </div>
 
     <!-- CONTENT -->
@@ -508,6 +509,45 @@ html,body{height:100%;font-family:'Inter',sans-serif;color:var(--ma-purple-dark)
           <div class="card" id="fin-cats"></div>
         </div>
 
+        <!-- CONTRATO -->
+        <div class="page" id="page-contrato">
+          <div class="page-header">
+            <div><div class="page-title">Contrato de servicios</div><div class="page-subtitle">Genera un contrato formal para la cliente</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Datos del contrato</div>
+            <div class="form-row-2">
+              <div class="form-group"><label>Nombre de la cliente</label><input type="text" id="con-cliente" placeholder="Nombre completo"></div>
+              <div class="form-group"><label>Tipo de evento</label>
+                <select id="con-tipo"><option>Boda</option><option>Baby shower</option><option>XV Años</option><option>Cumpleaños</option><option>Aniversario</option><option>Corporativo</option><option>Otro</option></select>
+              </div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group"><label>Fecha del evento</label><input type="date" id="con-fecha"></div>
+              <div class="form-group"><label>Lugar del evento</label><input type="text" id="con-lugar" placeholder="Salón, domicilio..."></div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group"><label>Total del servicio ($)</label><input type="number" id="con-total" placeholder="0.00" min="0" step="0.01"></div>
+              <div class="form-group"><label>Anticipo pagado ($)</label><input type="number" id="con-anticipo" placeholder="0.00" min="0" step="0.01"></div>
+            </div>
+            <div class="form-group"><label>Descripción breve del servicio</label><input type="text" id="con-descripcion" placeholder="Ej. Decoración de mesa, renta de sillas y vajilla para 80 personas"></div>
+          </div>
+          <div class="card" style="background:var(--ma-purple-pale);border-color:rgba(107,74,142,0.25);">
+            <div style="font-size:13px;font-weight:500;color:var(--ma-purple-dark);margin-bottom:10px;"><i class="ti ti-info-circle" style="vertical-align:-2px;margin-right:5px;"></i>Términos y condiciones incluidos</div>
+            <div style="font-size:13px;color:var(--ma-purple-mid);line-height:1.7;">
+              1. Se requiere el <strong>50% del total</strong> para confirmar la fecha. El saldo restante se liquida el día del evento.<br>
+              2. En caso de <strong>cancelación</strong>, el anticipo no es reembolsable bajo ninguna circunstancia.<br>
+              3. Una vez confirmado el evento, <strong>no se pueden realizar cambios</strong> en la cantidad de personas ni en el paquete contratado.<br>
+              4. El cliente es <strong>responsable de cualquier objeto dañado o extraviado</strong> durante el evento, el cual deberá ser repuesto a precio de factura.<br>
+              5. El material será entregado el día del evento y recolectado al término del mismo, salvo acuerdo previo por escrito.<br>
+              6. Marea Alta Eventos no se hace responsable por condiciones externas fuera de su control (clima, fuerza mayor, etc.).
+            </div>
+          </div>
+          <button class="btn btn-primary btn-block" onclick="generarContratoPDF()" style="margin-bottom:12px;">
+            <i class="ti ti-file-type-pdf"></i> Generar contrato PDF
+          </button>
+        </div>
+
         <!-- DEVOLUCIONES -->
         <div class="page" id="page-devoluciones">
           <div class="page-header"><div><div class="page-title">Devoluciones</div><div class="page-subtitle">Cierre de evento y verificación</div></div></div>
@@ -535,6 +575,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;color:var(--ma-purple-dark)
     <div class="nav-tab" onclick="showPage('eventos',this)" id="bnav-eventos"><i class="ti ti-calendar-event"></i><span>Eventos</span></div>
     <div class="nav-tab" onclick="showPage('finanzas',this)" id="bnav-finanzas"><i class="ti ti-chart-line"></i><span>Finanzas</span></div>
     <div class="nav-tab" onclick="showPage('devoluciones',this)" id="bnav-devoluciones"><i class="ti ti-rotate-clockwise-2"></i><span>Cierre</span></div>
+    <div class="nav-tab" onclick="showPage('contrato',this)" id="bnav-contrato"><i class="ti ti-writing-sign"></i><span>Contrato</span></div>
   </div>
 </div>
 
@@ -1425,6 +1466,151 @@ function imprimirReporte(){
   document.getElementById('print-periodo').textContent='Reporte de '+MONTHS[parseInt(mo)-1]+' '+yr;
   document.getElementById('print-fecha').textContent=new Date().toLocaleDateString('es-MX');
   window.print();
+}
+
+// ── CONTRATO ──────────────────────────────────
+function generarContratoPDF(){
+  const cliente=document.getElementById('con-cliente')?.value.trim();
+  if(!cliente){showToast('Ingresa el nombre de la cliente');return;}
+  const tipo=document.getElementById('con-tipo').value;
+  const fecha=document.getElementById('con-fecha').value;
+  const lugar=document.getElementById('con-lugar').value.trim();
+  const total=parseFloat(document.getElementById('con-total')?.value)||0;
+  const anticipo=parseFloat(document.getElementById('con-anticipo')?.value)||0;
+  const saldo=Math.max(0,total-anticipo);
+  const descripcion=document.getElementById('con-descripcion')?.value.trim();
+  const fechaFmt=fecha?new Date(fecha+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}):'Por confirmar';
+  const hoyFmt=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+  const folioContrato='CON-'+Date.now().toString().slice(-6);
+
+  const html=`<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<title>Contrato Marea Alta — ${cliente}</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:#D6E0F5;color:#3D1A5E;padding:40px 20px;}
+  .doc{max-width:700px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 10px 40px rgba(61,26,94,0.15);}
+  .doc-header{background:#3D1A5E;padding:32px 48px;display:flex;justify-content:space-between;align-items:flex-end;}
+  .logo-block .marea{font-family:'Playfair Display',serif;font-style:italic;font-size:26px;color:#D6E0F5;line-height:1;}
+  .logo-block .alta{font-family:'Playfair Display',serif;font-weight:600;font-size:32px;color:#D6E0F5;line-height:1;margin-top:-5px;}
+  .logo-block .ev-tag{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:#9B7BB8;margin-top:3px;}
+  .folio-block{text-align:right;}
+  .folio-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9B7BB8;}
+  .folio-val{font-family:monospace;font-size:16px;color:#D6E0F5;font-weight:600;margin-top:2px;}
+  .doc-sub{background:#EDE5F5;padding:10px 48px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B4A8E;text-align:center;}
+  .doc-body{padding:36px 48px;}
+  .section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9B7BB8;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid #EDE5F5;}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;}
+  .info-box{background:#F9F7FD;border-radius:8px;padding:12px 14px;}
+  .info-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9B7BB8;margin-bottom:3px;}
+  .info-val{font-size:13px;font-weight:600;color:#3D1A5E;}
+  .terms-box{background:#F9F7FD;border-radius:10px;padding:20px 22px;margin-top:4px;}
+  .term-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #EDE5F5;font-size:12.5px;color:#3D1A5E;line-height:1.6;}
+  .term-row:last-child{border-bottom:none;}
+  .term-num{font-family:'Playfair Display',serif;font-size:16px;color:#B8C8EE;font-weight:600;flex-shrink:0;width:20px;text-align:center;margin-top:1px;}
+  .financials{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:4px;}
+  .fin-box{border-radius:10px;padding:14px 16px;text-align:center;}
+  .fin-box.total{background:#3D1A5E;}
+  .fin-box.anticipo{background:#EDE5F5;}
+  .fin-box.saldo{background:#D6E0F5;}
+  .fin-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:4px;}
+  .fin-box.total .fin-label{color:#9B7BB8;}
+  .fin-box.anticipo .fin-label, .fin-box.saldo .fin-label{color:#6B4A8E;}
+  .fin-val{font-size:18px;font-weight:700;}
+  .fin-box.total .fin-val{color:#D6E0F5;}
+  .fin-box.anticipo .fin-val, .fin-box.saldo .fin-val{color:#3D1A5E;}
+  .signatures{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:36px;}
+  .sig-block{display:flex;flex-direction:column;gap:0;}
+  .sig-line-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#9B7BB8;margin-bottom:40px;}
+  .sig-line{border-top:1.5px solid #3D1A5E;padding-top:8px;}
+  .sig-name{font-size:13px;font-weight:600;color:#3D1A5E;}
+  .sig-role{font-size:11px;color:#9B7BB8;margin-top:2px;}
+  .doc-footer{background:#F9F7FD;padding:18px 48px;text-align:center;border-top:1px solid #EDE5F5;margin-top:36px;}
+  .footer-tagline{font-family:'Playfair Display',serif;font-style:italic;font-size:13px;color:#6B4A8E;margin-bottom:6px;}
+  .contact-row{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;font-size:11px;color:#9B7BB8;}
+  .date-note{font-size:11px;color:#B8C8EE;margin-top:8px;}
+  @media print{body{background:#fff;padding:0;}.doc{box-shadow:none;border-radius:0;max-width:100%;}}
+</style></head>
+<body>
+<div class="doc">
+  <div class="doc-header">
+    <div class="logo-block">
+      <div class="marea">Marea</div>
+      <div class="alta">Alta</div>
+      <div class="ev-tag">Eventos</div>
+    </div>
+    <div class="folio-block">
+      <div class="folio-label">Folio de contrato</div>
+      <div class="folio-val">${folioContrato}</div>
+    </div>
+  </div>
+  <div class="doc-sub">Contrato de prestación de servicios de renta y decoración</div>
+
+  <div class="doc-body">
+    <div class="section-title">Información del evento</div>
+    <div class="info-grid">
+      <div class="info-box"><div class="info-label">Cliente</div><div class="info-val">${cliente}</div></div>
+      <div class="info-box"><div class="info-label">Tipo de evento</div><div class="info-val">${tipo}</div></div>
+      <div class="info-box"><div class="info-label">Fecha del evento</div><div class="info-val">${fechaFmt}</div></div>
+      <div class="info-box"><div class="info-label">Lugar</div><div class="info-val">${lugar||'Por confirmar'}</div></div>
+      ${descripcion?`<div class="info-box" style="grid-column:1/-1;"><div class="info-label">Descripción del servicio</div><div class="info-val">${descripcion}</div></div>`:''}
+    </div>
+
+    ${total>0?`
+    <div class="section-title">Resumen financiero</div>
+    <div class="financials">
+      <div class="fin-box total"><div class="fin-label">Total del servicio</div><div class="fin-val">$${total.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+      <div class="fin-box anticipo"><div class="fin-label">Anticipo (50%)</div><div class="fin-val">$${anticipo.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+      <div class="fin-box saldo"><div class="fin-label">Saldo día del evento</div><div class="fin-val">$${saldo.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>
+    </div>`:''}
+
+    <div class="section-title">Términos y condiciones</div>
+    <div class="terms-box">
+      <div class="term-row"><span class="term-num">1</span><span>Para confirmar la fecha del evento se requiere el pago del <strong>50% del total</strong> como anticipo. El saldo restante deberá liquidarse el día del evento, previo a la instalación del material.</span></div>
+      <div class="term-row"><span class="term-num">2</span><span>En caso de <strong>cancelación por parte del cliente</strong>, el anticipo pagado no será reembolsable bajo ninguna circunstancia.</span></div>
+      <div class="term-row"><span class="term-num">3</span><span>Una vez confirmado el evento y recibido el anticipo, <strong>no se aceptarán cambios</strong> en la cantidad de personas ni modificaciones al paquete contratado.</span></div>
+      <div class="term-row"><span class="term-num">4</span><span>El cliente es <strong>responsable de cualquier pieza dañada, rota o extraviada</strong> durante el evento. La reposición se realizará a precio de factura vigente.</span></div>
+      <div class="term-row"><span class="term-num">5</span><span>El material será entregado e instalado el día del evento y recolectado al término del mismo. Cualquier acuerdo de tiempos distintos deberá pactarse por escrito con anticipación.</span></div>
+      <div class="term-row"><span class="term-num">6</span><span>Marea Alta Eventos no se hace responsable por situaciones ajenas a su control, incluyendo condiciones climáticas, contingencias o causas de fuerza mayor.</span></div>
+    </div>
+
+    <div class="signatures">
+      <div class="sig-block">
+        <div class="sig-line-label">Firma del cliente</div>
+        <div class="sig-line">
+          <div class="sig-name">${cliente}</div>
+          <div class="sig-role">Cliente</div>
+        </div>
+      </div>
+      <div class="sig-block">
+        <div class="sig-line-label">Firma Marea Alta Eventos</div>
+        <div class="sig-line">
+          <div class="sig-name">&nbsp;</div>
+          <div class="sig-role">Mariloli González / Ailine Yam</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="date-note">Ciudad del Carmen, Campeche · ${hoyFmt}</div>
+  </div>
+
+  <div class="doc-footer">
+    <div class="footer-tagline">Gracias por confiar en nosotras</div>
+    <div class="contact-row">
+      <span>📱 Mariloli González · 938 184 8915</span>
+      <span>📱 Ailine Yam · 938 136 7462</span>
+      <span>📷 @marea.aalta</span>
+    </div>
+  </div>
+</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),300);<\/script>
+</body></html>`;
+
+  const win=window.open('','_blank');
+  if(!win){showToast('Permite ventanas emergentes para generar el contrato');return;}
+  win.document.write(html);
+  win.document.close();
 }
 
 // ── DEVOLUCIONES ──────────────────────────────
